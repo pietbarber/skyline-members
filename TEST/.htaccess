@@ -1,0 +1,21 @@
+AuthUserFile /var/www/members/.htpasswd-instructors
+AuthName "Skyline Instructors Only"
+AuthType Basic
+IndexOptions	FancyIndexing DescriptionWidth=* SuppressSize SuppressLastModified
+Options Includes ExecCGI Indexes
+IndexOrderDefault Ascending Name
+
+<Limit GET POST>
+require valid-user
+</Limit>
+
+AddDescription "Generate a written test (and print it)" displaytest.cgi
+AddDescription "Instructions on how to use this system" Instructions.pdf
+AddDescription "All of the written tests generated so far" ARCHIVES
+AddDescription "Edit or add questions in the test bank" edittest.cgi
+
+ReadmeName README.shtml
+HeaderName HEADER.shtml
+
+
+

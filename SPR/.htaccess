@@ -1,0 +1,9 @@
+AuthUserFile /var/www/members/.htpasswd-instructors
+AuthName "Skyline Instructors Only"
+AuthType Basic
+Options ExecCGI
+
+<Limit GET POST>
+require valid-user
+</Limit>
+
