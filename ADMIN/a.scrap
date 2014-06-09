@@ -1,0 +1,33 @@
+Environment Variables<table border=1 bgcolor="#F8F8F8"><tr><td><pre>SCRIPT_NAME => /ADMIN/droidx.cgi
+SERVER_NAME => members.skylinesoaring.org
+HTTP_REFERER => http://members.skylinesoaring.org/ADMIN/droidx.cgi
+SERVER_ADMIN => webmaster@skylinesoaring.org
+HTTP_ACCEPT_ENCODING => gzip
+REQUEST_METHOD => POST
+CONTENT_LENGTH => 263
+HTTP_ACCEPT => application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+SCRIPT_FILENAME => /var/www/members/html/ADMIN/droidx.cgi
+HTTP_ORIGIN => http://members.skylinesoaring.org
+SERVER_SOFTWARE => Apache/2.2.3 (CentOS)
+HTTP_X_WAP_PROFILE => http://uaprof.vtext.com/mot/mb810/mb810.xml
+HTTP_ACCEPT_CHARSET => utf-8, iso-8859-1, utf-16, *;q=0.7
+REMOTE_USER => rdecker
+AUTH_TYPE => Basic
+QUERY_STRING => 
+REMOTE_PORT => 1237
+HTTP_USER_AGENT => Mozilla/5.0 (Linux; U; Android 2.3.4; en-us; DROIDX Build/4.5.1_57_DX8-51) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1
+SERVER_PORT => 80
+SERVER_SIGNATURE => <address>Apache/2.2.3 (CentOS) Server at members.skylinesoaring.org Port 80</address>
+
+HTTP_ACCEPT_LANGUAGE => en-US
+HTTP_COOKIE => __utma=108709022.564749303.1350517672.1350691283.1350903336.4; __utmz=108709022.1350517672.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); __utma=183044004.1299427211.1342542231.1350691701.1350694057.7; __utmz=183044004.1350694057.7.5.utmcsr=members.skylinesoaring.org|utmccn=(referral)|utmcmd=referral|utmcct=/INSTRUCTORS/SPR/
+REMOTE_ADDR => 174.255.16.75
+CONTENT_TYPE => multipart/form-data; boundary=----WebKitFormBoundaryHQJavV5BU2RNz7yy
+SERVER_PROTOCOL => HTTP/1.1
+PATH => /sbin:/usr/sbin:/bin:/usr/bin
+REQUEST_URI => /ADMIN/droidx.cgi
+GATEWAY_INTERFACE => CGI/1.1
+SERVER_ADDR => 72.249.105.117
+DOCUMENT_ROOT => /var/www/skyline/html/
+HTTP_HOST => members.skylinesoaring.org
+</pre></td></tr><tr><td>Text you entered:</td></tr><tr><td>Yup it works. Thanks a bunch!</td></tr></table></pre>

@@ -1,0 +1,135 @@
+-------------------------------------------------------------------------------
+
+FSGuide - history
+
+(c) 2003-2004, trajic
+contact through: http://demoscene.hu/trajic
+
+http://fsguide.sourceforge.net
+
+-------------------------------------------------------------------------------
+
+v0.5  // released on 2004-03-09
+    (tons of important changes, maybe it should be more than 0.5 :)
+
+    + download option with configurable bandwidth-control
+      (browser-quirks identifier class was included from 
+       the Horde framework)
+    + user authentication and per-user settings through user.ini
+      it's even possible to create your own user authentication module
+      (eg. rdbms-based) by replacing user.ini.php with your own
+    + session-based user authentication
+    + you can still use FSGuide without login/password, in which case
+      the [default] settings of user.ini will be used
+    + per-user settings:
+       - bookmarks= (shortcuts to frequently used directories)
+       - start= (start directories)
+       - dirN= (access control rules to define rights)
+       - password= (user password)
+       - and other settings from config.inc.php
+    + you can override default settings in user.ini
+    * reorganized directory structure
+    * the Windows driveletter-shortcuts are removed. you can simulate
+      nearly the same effect by using the bookmarks
+    * the '.' (current directory) filename can be configured to be shown or
+      not (now disabled by default)
+    * fixed bug: couldn't access directories having ' or & in its name
+      (reported by Ercolino, thanks for further suggestions too!)
+    * navigatorline() reviewed (variable name changes only)
+
+v0.42 // released on 2004-02-17
+    * workaround for a kinda annoying bug of MSIE: it does not support 
+      multiple submit <BUTTON>s sharing a common "name" and
+      having different "value" attributes (anyways, it works fine under 
+      also Opera, Mozilla) (reported by Ercolino)
+
+v0.41 // released on 2004-02-10
+    * large filelist resulted an Apache error due to large amount of
+      GET data (now using POST method for the main form and the 
+      REQUEST array everywhere in the code) (reported by Ronalds)
+    * small HTML and image fixes
+    + added rating, please do rate if you use and like it 
+
+v0.4 // released on 2004-01-14
+    + added 'check all', 'check none', 'invert selection' and 
+      an advanced select dialog 
+    + added file selector dialog (by filetype, extension, regexp, filesize)
+    + filelist function added
+    + language tool added - it helps translators to find missing 
+      defines in language files (see includes/langtool.php).
+    + added customized free icon sets from: 
+        - Ben of hooboo.com (iconsets/ben),  
+        - Barbara Kaemper's 'Landscapes' (iconsets/bk) 
+        - Andi Peredri's 'QIcons 0.1' (iconsets/quicons), 
+        - and the GNOME icon set 'Noia' (iconsets/noia)
+    + added French language file (created by Ben Bois)
+    + added German language file (created by Christopher Kramer)
+    * <INPUT TYPE=BUTTON> was replaced with <BUTTON> to
+      avoid problems with national characters in button names -
+      now FSGuide needs HTML4 compliant browsers
+    * fixed rename bug (reported by both Marton Elek and Christopher Kramer)
+    - the 'check all' checkbox was missing in the root directory since
+      it was positioned for the dot directory. Now it's eliminated by the
+      new selection controls.
+    * changed <? to <?php everywhere so settings of php.ini won't affect 
+      fsguide
+    * verified against HTML standard using W3C's validator
+
+v0.3 // released on 2003-11-18
+
+    + added html highlighter to viewer
+    + added custom error handler
+    + added file uploads with unzip option. 
+      + detects if php.ini 'file_uploads' setting makes it possible
+      + shows maximum upload filesize (php.ini setting) before upload
+      + configurable number of upload controls
+      + any command can be configured to run after upload 
+        (unzip, mogrify, etc.)
+    + javascript used for making the gui convenient (global invert checkbox)
+    + text editor now saves the file
+    + binary editor now saves the file
+    + save_binaryfile() validates input values before updating the file
+    * binary editor bugfix (last line did not appear)
+
+v0.2 // released on 2003-04-04
+
+    + added HISTORY, README, TODO files
+    + localization support (English, Hungarian language files included)
+    + skeleton for text and binary editing (does not store yet)
+    + configuration file
+    + support $default variable containing default values
+      will be configurable later
+    + filetype icons (taken from Apache) 
+    + panel content sorting 
+    + opening current directory 
+    + drive selector under Windows
+    + you can configure which drive letters to scan 
+    + CSS layout
+    * panel rendering rewritten to support sorting
+    * replaced short variable- and functionnames 
+    * viewer: now easy to add new filetypes
+    * viewer: separate filetype determination and file viewer parts
+    * viewer: file viewer parts are placed in an include file
+    + viewer: added Content-type headers for PDF, RTF, PS,  
+              M$ Word, M$ Excel, MP3
+    * filename cut when too long (configurable), TITLE contains full name
+    * colorized permission letters
+
+v0.1 // released on 2003-03-10
+
+  basic version, a contribution to the 5k php compo of the
+  Hungarian PHP Conference, 2003 (www.phpconf.hu)
+  the source was unreadable for others than me (had to fit in 5120 bytes) 
+
+  basic features:
+  - two panel interface (filename, size, date, rights)
+  - recursive copy, move, delete
+  - mkdir
+  - rename
+  - navigator bar
+  - checkboxes
+  - view binary files, textfiles with a pager
+  - view images (recognized by PHP) as images 
+  - view PHP files as source highlighted
+  - HTML 4.01 Transitional (validated successfully at w3.org)
+  - supports both Windows and *NIX (tested under Windows and Linux)

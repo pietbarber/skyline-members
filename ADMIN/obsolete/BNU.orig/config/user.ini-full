@@ -1,0 +1,56 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; example configuration - all possible settings included ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; this .ini file serves reference purposes, since most of 
+; the time there's no need to change most of the 
+; config.inc.php settings.
+;
+; - the user.ini specific settings are described
+;   in the user.ini-explained file
+; - the explanation of other settings are in config.inc.php
+
+[username]
+password=userpassword
+
+startdir_left=
+startdir_right=
+bookmarks=
+locale=en
+charset=iso-8859-2
+iconset=noia
+iconset_extension=png
+panel_dirsfirst=1
+panel_sortby=name
+panel_sortdirection=3
+panel_filename_maxlength=21
+panel_filename_append="..."
+panel_show_onedotfile=0
+editor_cols=80
+editor_rows=25
+editor_bineditor_decimal_edit=0
+editor_bineditor_bytes_perscreen=256
+editor_bineditor_bytes_perline=16
+editor_bineditor_pager_percents=5
+viewer_functions_per_line=8
+pager_bytes=20000
+viewer_html_colors_tag="#808080"
+viewer_html_colors_tagname="#0000FF"
+viewer_html_colors_parname="#000080"
+viewer_html_colors_parvalue="#800000"
+upload_number_of_file_controls=
+download_chunksize=150000
+download_chunksleep=0
+
+; additionally, you can specify access control rules:
+; (see details in user.ini-explained)
+;
+; Windows style:
+;
+; dir0=c:/,-ALL
+; dir1=c:/www/example.com/upload_folder/,+ALL
+;
+; Linux/Unix style:
+;
+; dir0=/,-ALL
+; dir1=/www/example.com/upload_folder/,+ALL

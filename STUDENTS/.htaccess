@@ -1,0 +1,19 @@
+AuthUserFile /var/www/members/.htpasswd
+AuthName "Skyline Members Only"
+AuthType Basic
+IndexOptions	FancyIndexing DescriptionWidth=* SuppressSize SuppressLastModified
+Options Indexes Includes ExecCGI 
+IndexOrderDefault Descending Date
+
+<Limit GET POST>
+require valid-user
+</Limit>
+
+AddDescription "Student Progress Report -- View your Training Record here" SPR
+AddDescription "List of materials necessary for your training" MaterialsSheet.pdf
+
+ReadmeName README.shtml
+HeaderName HEADER.shtml
+
+
+

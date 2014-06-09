@@ -1,0 +1,31 @@
+;;;;;;;;;;;;;;;;;;;;;;;;
+; configuration etalon ;
+;;;;;;;;;;;;;;;;;;;;;;;;
+; 
+; read user.ini-explained first!
+;
+
+[default]
+; finetuning access using access control rules:
+; 1) disable everything
+; 2) disable the place of user.ini if needed (first rule might be enough)
+; 3) enable access
+; [ 4) set up start directories, bookmarks if you want]
+
+dir1=/,-ALL
+dir2=/some/safe_place/,-ALL
+dir3=/this/path/is/to/be/accessed/,+ALL
+
+; startdir_left=/this/path/is/to/be/accessed/
+; startdir_right=/this/path/is/to/be/accessed/
+; bookmarks=/
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; adding another user is easy ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; [username]
+; password=somepassword
+; bookmarks=/www/example.com/;/home/users/username
+; startdir_left=/www/example.com/
+; startdir_right=/home/users/username

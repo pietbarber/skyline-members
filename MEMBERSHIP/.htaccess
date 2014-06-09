@@ -1,0 +1,9 @@
+AuthUserFile /var/www/members/.htpasswd
+AuthGroupFile /dev/null
+AuthName "Skyline Members Only"
+AuthType Basic
+Options +Includes
+
+<Limit GET POST>
+require valid-user
+</Limit>

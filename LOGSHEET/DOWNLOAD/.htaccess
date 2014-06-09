@@ -1,0 +1,13 @@
+AuthUserFile /var/www/members/.htpasswd-logsheet
+AuthName "Skyline Members Only"
+AuthType Basic
+Options ExecCGI
+IndexOrderDefault Descending Date
+
+<Limit GET POST>
+require valid-user
+</Limit>
+
+ReadmeName README.shtml
+HeaderName HEADER.shtml
+AuthType Basic

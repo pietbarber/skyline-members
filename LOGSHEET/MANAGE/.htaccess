@@ -1,0 +1,21 @@
+AuthUserFile /var/www/members/html/LIST-ARCHIVES/logsheet/.htpasswd-logsheet
+AuthName "Skyline Members Only"
+AuthType Basic
+IndexOptions	FancyIndexing DescriptionWidth=* SuppressSize SuppressLastModified
+Options Indexes Includes FollowSymLinks
+IndexOrderDefault Descending Date
+
+<Limit GET POST>
+require valid-user
+</Limit>
+
+AddDescription "Current Logsheet program, Mac" ssc45.dmg
+AddDescription "Current Logsheet program, Windows/Linux" ssc41.zip
+AddDescription "Logsheets Previously-Submitted" logsheet-archive
+AddDescription "Old versions of the logsheet program" old-logsheets
+
+ReadmeName README.shtml
+HeaderName HEADER.shtml
+
+
+

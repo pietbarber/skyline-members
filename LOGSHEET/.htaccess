@@ -1,0 +1,24 @@
+AuthUserFile /var/www/members/.htpasswd-logsheet
+AuthName 	"Skyline Members Only"
+AuthType 	Basic
+IndexOptions	FancyIndexing DescriptionWidth=* SuppressSize SuppressLastModified
+Options 	Indexes Includes FollowSymLinks
+#IndexOrderDefault Name
+#IndexOrderDefault Descending Date
+
+<Limit GET POST>
+require valid-user
+</Limit>
+
+AddDescription "Download the latest logsheet program to use on your computer" DOWNLOAD
+AddDescription "Search for a Logsheet" LOG-SEARCH
+AddDescription "Upload a Logsheet" UPLOAD
+AddDescription "Logsheets back when they were sent by email" logsheet-archive
+AddDescription "Old versions of the logsheet program" old-logsheets
+AddDescription "Manage the content of this directory (limited to webmasters)" MANAGE
+
+ReadmeName README.shtml
+HeaderName HEADER.shtml
+
+
+

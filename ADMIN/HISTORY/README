@@ -1,0 +1,81 @@
+-------------------------------------------------------------------------------
+
+FSGuide - readme
+
+(c) 2003-2004, trajic
+contact through: http://demoscene.hu/trajic
+
+http://fsguide.sourceforge.net
+
+-------------------------------------------------------------------------------
+
+FSGuide is a Norton Commander-clone for the web, which might be useful
+when you do not have shell access to your server, but want to
+perform basic file operations. 
+
+Ofcourse you can reach every file of the filesystem
+the web user (www-data or wwwrun used by Apache) has the
+privileges for (and not just files and directories under htdocs and 
+the like).
+This way you can display, copy, remove any file or subdirectory.
+
+FSGuide features:
+- user authentication (you can disable user authentication to use 
+  FSGuide without logging in)
+- details of user access are configurable in a simple .ini file
+- deeply customizable through its configuration file and
+  the user.ini file, loads of peruser settings
+- access control finetuning through access control lists in user ini file
+- you can implement your own authentication module (eg. rdbms-based)
+- two-panel display (supports sorting)
+- directory bookmarks
+- selecting files using checkboxes
+  You can even "cross-copy" files between the two panels:
+  after selecting files in both panels, just click the copy or move
+  button - this way all the selected files are copied/moved to the
+  other panel. If you click on the delete button, all the selected
+  files in both panels are deleted.
+- advanced file selection dialog (select files by
+  regular expression, extension, extension group, permission, filesize, time)
+- copying, moving, deleting files and directories even recursively
+- renaming files or directories (only the first selected file)
+- creating directories 
+- the file operations use no external commands (it helps multiplatform use)
+- a one-line navigator on both panels. Clicking on parts
+  of the navigator results in opening that subdirectory in the
+  panel.
+- downloading files (and optional bandwidth control mechanism)
+- opening and displaying files:
+  - built-in detection for different filetypes 
+    (DOC, PDF, text, PHP, binary, etc.) by extension or contents
+  - displaying files depending on the result of the detection:
+    - files having .php and .inc extension are displayed
+      using source highlight
+    - images files recognized by PHP are displayed as images:
+      this helps a lot while organizing image files on a remote
+      server (eg. if you use Windows).
+    - If there are no other special characters than
+      #09 (tab), #10 (CR), #12 (page break), #13 (LF), the file is displayed
+      as a simple textfile. The file is divided into 10000 characters
+      long pages (you can use the "more" or "less" links to
+      switch between pages)
+    - If there are other special characters in the file,
+      or characters undefined in the ISO-8859-2 codepage, then the
+      file is treated as a binary file. In this case the control
+      characters, and ISO-8859-2's undefined characters (0x7f-
+      0x9f) are replaced with a dot (to avoid browsers
+      displaying contents erroneously and to conform the
+      HTML standard).
+- file uploader: 
+    - configurable number of files to upload at once
+    - you can configure any application to run after upload
+    - you can check to drop the original file when the application finishes
+- file editor:
+    - plain text editor
+    - binary editor
+- works under both Windows and Linux
+- does not depend on third-party libraries or extensions and needs no RDBMS
+- produces well-formatted, valid HTML 4.01 Transitional pages
+- uses PHP's error messages to report errors of file operations (since
+  the default messages contain all the important information about
+  the errors). This will change in the future.
