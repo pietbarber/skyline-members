@@ -1,5 +1,0 @@
-prereq yxdomain classicsailplane.org
-update delete classicsailplane.org
-update add classicsailplane.org 900 A 63.218.155.125
-
-
