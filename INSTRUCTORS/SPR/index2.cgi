@@ -24,9 +24,6 @@
 
 
 	# To Do List, which is painfully long: 
-	# 5) Get the ability for an instructor to log flights that day
-	#    instead of having to wait for the flights to be entered into the 
-	#    flight_info database. 
 	# 13) Make opportunity for return to grid work. 
 	# 14) Make a place for AC 61-65E signoffs to get explicitly recorded. 
 	# 
@@ -54,6 +51,9 @@
 	# 1) make it so that ground instruction, or mark-offs without
 	#    a specific flight involved can be remarked. (like if dude
 	#    does the written test on a day when he doesn't fly) 
+	# 5) Get the ability for an instructor to log flights that day
+	#    instead of having to wait for the flights to be entered into the 
+	#    flight_info database. 
 	# 7) Actually make insert button insert stuff into the database. 
 	# 11) Check for sanity before insertion. (Unlike many girlfriends I had in college)
 	#      well.... sorta accomplished. 
@@ -194,14 +194,20 @@ if (is_user_instructor($the_instructor)) {
   elsif (param('final_submit') eq 'Submit Report') {
     if (param('comments_added') eq 'on') {
 warn "comments added here. .\n";
-      start_page("Inserting Comments for " . $handle_to_name{param('student')});
+      start_page("Inserting Comments for " . $handle_to_name{param('handle')});
       handjam_comments();
+      print hr(); 
+      pending_reports($the_instructor);
+      print qq(<a href="?">Return to Main</a>\n);
       end_page();
       }
     else {
       start_page($handle_to_name{param('handle')});
       verbose_output() if $DEBUG;
       submit_final_report();
+      print hr(); 
+      pending_reports($the_instructor);
+      print qq(<a href="?">Return to Main</a>\n);
       end_page();
       }
     }
@@ -552,7 +558,7 @@ sub handjam_comments {
 	escape(param('just_comment')), 
 	1
 	);
-    print "Attempting to submit this here sql; ($sql)\n"; 
+    print "Attempting to submit this here sql; ($sql)\n" if $DEBUG; 
     if (please_to_inserting($sql)) { 
       print p("Instructor report essay updated with remark.\n"); 
       }
@@ -592,7 +598,7 @@ sub handjam_comments {
 	$the_instructor, 
 	$qual_notes
 	);
-    print "Attempting to insert this SQL: <pre>$sql</pre><br>\n";
+    print "Attempting to insert this SQL: <pre>$sql</pre><br>\n" if $DEBUG;
     please_to_inserting($sql); 
     }
   }
@@ -705,9 +711,6 @@ sub submit_final_report {
         }
       }
     }
-  print hr(); 
-  pending_reports($the_instructor);
-  print qq(<a href="?">Return to Main</a>\n);
   }
 
 sub please_to_inserting {
