@@ -24,9 +24,6 @@
 
 
 	# To Do List, which is painfully long: 
-	# 5) Get the ability for an instructor to log flights that day
-	#    instead of having to wait for the flights to be entered into the 
-	#    flight_info database. 
 	# 13) Make opportunity for return to grid work. 
 	# 14) Make a place for AC 61-65E signoffs to get explicitly recorded. 
 	# 
@@ -54,6 +51,9 @@
 	# 1) make it so that ground instruction, or mark-offs without
 	#    a specific flight involved can be remarked. (like if dude
 	#    does the written test on a day when he doesn't fly) 
+	# 5) Get the ability for an instructor to log flights that day
+	#    instead of having to wait for the flights to be entered into the 
+	#    flight_info database. 
 	# 7) Actually make insert button insert stuff into the database. 
 	# 11) Check for sanity before insertion. (Unlike many girlfriends I had in college)
 	#      well.... sorta accomplished. 
