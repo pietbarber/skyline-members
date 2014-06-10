@@ -71,7 +71,7 @@ use DBI;                # Allows access to DB functions
 use strict;             # Create extra hoops to jump through
 		# Comment out the less appropriate of these two: 
 my ($DEBUG)=0; 		# Shut yer mouth with yer whinin' 
-my ($DEBUG)=1; 		# Be verbose with your whining. 
+#my ($DEBUG)=1; 		# Be verbose with your whining. 
 my ($the_instructor)=$ENV{'REMOTE_USER'}; 	# So we can override occasionally
 #my ($the_instructor)='jkellett'; 	# So we can override occasionally
 						# and pretend we're an instructor for debugging
@@ -104,6 +104,7 @@ if (is_user_instructor($the_instructor)) {
     start_page('Student Progress Reports' );
 	# First pring a listing of all the instructor's pending reports
     pending_reports($the_instructor);
+    print qq(<a href="?comments=on">Add Comments or Quals to a Student Record</a><br>\n);
     print qq(<a href="?ground=on">Log Ground Instruction</a><br>\n);
     print qq(<a href="?logflight=on">Log Flight Instruction</a> (when the log sheet is not yet uploaded by a DO)<br>\n);
 	# Then print out all existing members; 
@@ -135,20 +136,21 @@ if (is_user_instructor($the_instructor)) {
 	# then it's time to insert the data into the database. 
 
   elsif ($handle_to_name{param('student')}) {
-	#warn "OK we have student here. " . param('student') . "\n"; 
-        #open OUTFILE, ">/var/tmp/3outfile.txt";  
-	#select OUTFILE; 
-	#verbose_output(); 
-	#select STDOUT; 
     if (param('ground_instruction') eq 'on') {
-	warn "Insertifiying Ground Instruction now. \n"; 
+	warn "Insertifiying Ground Instruction now. \n" if $DEBUG; 
       insertify_ground_instruction(); 
       }
     elsif (param('missing_flight_instruction') eq 'on') {
       insertify_flight_instruction(); 
       }
 
-    if (param('notes') eq 'on') {
+    if (param('adding_comment') eq 'on') {
+      start_page("Adding Comments for " . $handle_to_name{param('student')});
+      print full_javascript();
+      show_expired_status(param('student'));
+      insertify_just_comments();
+      }
+    elsif (param('notes') eq 'on') {
       start_page("Instruction Record for " . $handle_to_name{param('student')});
       print mini_javascript();
       show_expired_status(param('student'));
@@ -170,6 +172,14 @@ if (is_user_instructor($the_instructor)) {
     end_page();
     }
 
+  elsif (param('comments') eq 'on') {
+    start_page('Add Comments to a Student\'s Record');
+    print qq(<a href="?">Return to Main</a>\n);
+    print start_form();
+    comment_logger();
+    end_page();
+    }
+
   elsif (param('ground') eq 'on') {
     start_page('Log Ground Instruction');
     print qq(<a href="?">Return to Main</a>\n);
@@ -182,10 +192,18 @@ if (is_user_instructor($the_instructor)) {
 	# Here is where we do some checks 
 	# and then throw the shit into the db. 
   elsif (param('final_submit') eq 'Submit Report') {
-    start_page($handle_to_name{param('handle')});
-    #verbose_output();
-    submit_final_report();
-    end_page();
+    if (param('comments_added') eq 'on') {
+warn "comments added here. .\n";
+      start_page("Inserting Comments for " . $handle_to_name{param('student')});
+      handjam_comments();
+      end_page();
+      }
+    else {
+      start_page($handle_to_name{param('handle')});
+      verbose_output() if $DEBUG;
+      submit_final_report();
+      end_page();
+      }
     }
 
   elsif (param('submit') eq 'Record This as a Default Demo Flight') {
@@ -218,7 +236,7 @@ if (is_user_instructor($the_instructor)) {
 
   else {
     start_page("How did you get here?");
-    verbose_output();
+    verbose_output() if $DEBUG;
     end_page();
     }
   }
@@ -330,6 +348,26 @@ sub insertify_flight_instruction {
   }
 
 
+sub insertify_just_comments {
+	# Take no input
+	# Just go straight to adding comments and qualifications to the student's record. 
+  print start_form();
+  enter_data_table('just_comment'); 
+  add_qualifications(param('datefield'), param('student'));
+  print submit (
+	-name => 'final_submit',
+	-label => 'Submit Report'
+	);
+  print hidden ('comments_added', 'on');
+  print hidden ('handle', param('student'));
+  print hidden ('datefield');
+  print end_form();
+  }
+
+
+ 
+
+
 
 sub insertify_ground_instruction {
 	# Take no input
@@ -372,6 +410,37 @@ sub insertify_ground_instruction {
     warn "Somehow.... not all four fields are filled in for ground instruction"; 
     }
   }
+
+sub comment_logger {
+	# So you just want to add some comments, and maybe some qualifications?
+	# OK, we can do it here...
+  print p(qq(Use this page for when you just want to add some comments to the student's record,
+without adding any completed items in their instruction syllabus tracking sheet. You can also
+use this page to just add qualifications (or endorsements), without logging any ground instruction.\n));
+  print qq(<table border=0><tr>\n);
+  my (%handles)=fetch_members('active');
+  my (@members) = sort by_lastname keys(%handles); 
+  print popup_menu(
+	-name => 'student',
+	-values => [@members],
+	-labels => \%handles
+	);
+  print "</td></tr>\n";
+  print qq(<tr><td align="right">Enter date (YYYY-MM-DD):</td><td>);
+  print textfield (
+	-name => 'datefield',
+	-default => today(),
+	-size => 10
+	);
+  print "</td></tr>\n";
+  print qq(<tr><td align="center" colspan="2">\n);
+  print hidden ('adding_comment', 'on');
+  print submit (
+	-label => 'Proceed'
+	);
+  print end_form();
+  }
+
 
 sub flight_instruction_logger {
 	# One page to print form information -- 
@@ -461,6 +530,73 @@ sub instruction_logger {
   }
 
 
+sub handjam_comments {
+	# So you've decided to go the route of just submitting comments, 
+	# instead of writing up an instruction report, or a ground_isntruction report. 
+	# This will just take the comments and put them into the student's record. 
+	# Also, if any qualifications have been tacked on, they'll be added, too. 
+	#
+  verbose_output() if $DEBUG; 
+  if (param('just_comment')) {
+    my ($sql) = sprintf (qq(insert into instructor_reports2 values (
+		'%s',	-- handle 
+		'%s',	-- report_date
+		'%s',	-- instructor
+		'%s',	-- lastupdated
+		'%s'	-- Report text 
+		)),
+	param('handle'),
+	param('datefield'),
+	$the_instructor,
+	time, 
+	escape(param('just_comment')), 
+	1
+	);
+    print "Attempting to submit this here sql; ($sql)\n"; 
+    if (please_to_inserting($sql)) { 
+      print p("Instructor report essay updated with remark.\n"); 
+      }
+    }
+  else {
+    print "No comments were added.<br>\n";
+    }
+
+	# OK, now we're going to look at the qualifactions that may
+	# or may not have been checked off on the only-comments page. 
+	# If any new qualifications are listed, then we'll insert into 
+	# the database any qualifications that got added. 
+
+  my ($qual_notes)='';
+  my (%quals) =  please_to_fetching_unordered(
+    qq(select name, img_url, description, is_qual from endorsement_roles),
+      'name', 'img_url', 'description', 'is_qual'	
+    );
+ 
+  for my $qual (param('quals')) {
+    print "Adding $qual to Qualifications...<br>\n" if $DEBUG;
+    next unless (exists ($quals{$qual})); 	# If somehow somebody tries to insert a qualification
+						# that isn't in the endorsement_roles table, then 
+						# this endorsement is skipped. 
+    print "The qual of $qual appears to be legit...<br>\n" if $DEBUG; 
+    my ($sql) = sprintf (qq(insert into quals values (
+		'%s', 	-- handle
+		'%s',	-- qualification
+		TRUE,	-- is_qualified boolean
+		FALSE, 	-- expires boolean
+		NULL, 	-- Expiration Date
+		'%s',	-- instructor handle
+		'%s' 	-- Any notes
+		)),
+	param('handle'),
+	$qual, 
+	$the_instructor, 
+	$qual_notes
+	);
+    print "Attempting to insert this SQL: <pre>$sql</pre><br>\n";
+    please_to_inserting($sql); 
+    }
+  }
+
 sub submit_final_report {
 	# Go through everything in param
 	# pick out the text inserted for each flight_grouping
@@ -538,6 +674,7 @@ sub submit_final_report {
       print "Attempting to insert this SQL: <pre>$sql</pre><br>\n";
       please_to_inserting($sql); 
       }
+
     my ($sql)=sprintf (qq(insert into spr_audit values ('%s', '%s', '%s', '%s')), 
 	param('handle'),
 	$flight_info{'instructor'}, 
@@ -2630,11 +2767,12 @@ EOM
   print include('left-menu.scrap') unless $header eq 'noheader';
   #beta_test();
   print h1($title);
+  verbose_output() if $DEBUG;
   }
 
 sub beta_test {
   print qq(<table border=0 bgcolor="FFE8E8"><tr><td><h2>NOTE WELL</h2>This page is going through beta
-testing. Any information you enter here will not be permanently stored.  Please immediately report bugs 
+testing. Any information you enter here may not be permanently stored.  Please immediately report bugs 
 or any feedback you have to Piet Barber (<a href="mailto:pb\@pietbarber.com">pb\@pietbarber.com</a>)</td></tr></table>
 	); 
   }
@@ -2650,6 +2788,10 @@ sub by_lastname {
   }
 
 sub add_qualifications {
+	# So this guy did something to add some qualifications? 
+	# We'll show what he's got, and what he needs added here. 
+	# Not really linked to the flight_info database at all, this sub
+	# could stand by its self. 
   my ($endorsement_date)  = shift; 
   my ($handle) = shift; 
 
@@ -2711,89 +2853,13 @@ sub enter_data_table {
 	# the elm1 is the super cool javascript that makes all the syntax highlighting, etc. 
 
   my ($input)=shift; 
-  print "<br><b>Enter Additional Comments (Optional)</b> <br>\n";
+  print "<br><b>Enter Any Comments</b> <br>\n";
   print textarea(
 	-name => "$input",
 	-rows => "15",
 	-cols => "80",
-	#-id => 'elm1'
 	);
   
-  }
-
-sub mail_instructor_report {
-	# I don't think this actually sends anything useful for now
-	# I also don't know if it's being called yet. 
-	# I should really look into this
-	# FIXME
-  open (SENDMAIL, "|-")
-        || exec ('/usr/sbin/sendmail', '-t', '-oi');
-  my ($random_num);
-  my (@allow_chars) = (0..9);
-  for (1..24) {
-    $random_num .= $allow_chars[int(rand($#allow_chars))];
-    }
-  use HTML::Strip; 
-  my $hs = HTML::Strip->new();
-
-  my (@text_report) = (
-	($handle_labels{param('handle')} || sprintf ("%s, %s", param('lastname'), param('firstname'))),
-	$handle_labels{param('instructor')},
-	param('report_date'),
-	$hs->parse(param('text'))
-	);
-  
-  printf SENDMAIL "From: \"%s\" <%s\@skylinesoaring.org>\n", 
-	$handle_labels{param('instructor')}, 
-	param('instructor');
-  printf SENDMAIL "MIME-Version: 1.0\n";
-  printf SENDMAIL "X-Accept-Language: en-us, en\n";
-  #print SENDMAIL "To: \"Skyline Instructors\" <instructors\@skylinesoaring.org>\n";
-  print SENDMAIL "To: \"Piet Barber\" <pbarber\@skylinesoaring.org>\n";
-  #printf SENDMAIL "Subject: Instruction Report for %s\n", param('report_date');
-  printf SENDMAIL "Subject: IR for %s\n", $text_report[0];
-
-printf SENDMAIL <<EOM, @text_report, show_content(), end_html();
-Content-Type: multipart/alternative;
- boundary="------------$random_num"
-This is a multi-part message in MIME format.
---------------$random_num
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-    Instruction Report on file for %s
-
-         Instructor: %s
-Date of Instruction: %s
-
-%s
-
-Enter Instruction reports by going to: 
-http://members.skylinesoaring.org/INSTRUCTORS/Instructor%20Reports/
-------------------------------------------------------------------------
-
---------------$random_num
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-  <title>Instruction Report</title>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-%s
-
-Enter Instruction reports by going to: <br>
-<a href = "http://members.skylinesoaring.org/INSTRUCTORS/Instructor%20Reports/">http://members.skylinesoaring.org/INSTRUCTORS/Instructor%20Reports/</a>
-%s
---------------$random_num--
-
-
-EOM
-
-  close (SENDMAIL);
   }
 
 sub escape {
