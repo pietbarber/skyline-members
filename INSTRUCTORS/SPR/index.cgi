@@ -193,7 +193,6 @@ if (is_user_instructor($the_instructor)) {
 	# and then throw the shit into the db. 
   elsif (param('final_submit') eq 'Submit Report') {
     if (param('comments_added') eq 'on') {
-warn "comments added here. .\n";
       start_page("Inserting Comments for " . $handle_to_name{param('handle')});
       handjam_comments();
       print hr(); 
@@ -284,9 +283,9 @@ sub active_member {
   $get_info->execute();
   while ( my $row = $get_info->fetchrow_hashref ) {
     $answer=$row->{'lastupdated'};
-    warn "printing $answer\n"; 
+    warn "printing $answer\n" if $DEBUG; 
     }
-  warn "active member answer for $input is $answer\n"; 
+  warn "active member answer for $input is $answer\n" if $DEBUG; 
   $answer; 
   }
 
@@ -943,7 +942,6 @@ sub allow_for_instructor_comments {
 	# sometimes its only one flight, but sometimes more. 
 	# the get_flights_from_id figures that out for you. 
     if ($flight_information{'ground_tracking_id'} > 0) {
-      #warn "It's ground instruction, all right.\n" if $DEBUG; 
       
       print qq(<table border="1">\n); 
       print qq(<tr bgcolor="#E0E088"><td colspan="3">Ground Instruction</td></tr>); 
@@ -957,7 +955,6 @@ sub allow_for_instructor_comments {
       print qq(</table><br>\n); 
       }
     elsif ($flight_information{'flight_tracking_id'} > 0) { 
-      #warn "It's flight instruction, all right.\n" if $DEBUG; 
       print qq(<table border="1">\n); 
       print qq(<tr bgcolor="#aaaaaa"><td>Date</td><td>Glider</td><td>Release</td><td>Duration</td>\n); 
       print "</tr>\n"; 
@@ -2225,7 +2222,6 @@ EOM
     if ($id+0==0) {
       $id=$flights[$flight_number]->{'ground_tracking_id'}; 
       }
-    #warn ("ID is $id\n") if $DEBUG; 
     $flight_cols{$id}=column_for_this_flight(
 		$user,
 		$flights[$flight_number]->{'instructor'},
@@ -2281,11 +2277,9 @@ EOM
         $flight_count{$flights[$flight_number]->{'flight_date'}}{$flights[$flight_number]->{'instructor'}}++;
         my ($id); 
         $id=$flights[$flight_number]->{'flight_tracking_id'}; 
-        #warn ("ID (#1.5) is $id\n") if $DEBUG;  
         if ($id+0==0) {
           $id=$flights[$flight_number]->{'ground_tracking_id'}; 
           }
-        #warn ("ID (#2) is $id\n") if $DEBUG;  
 
         my ($bgcolor)="#FFFFFF";
         my $lesson_ball; 
