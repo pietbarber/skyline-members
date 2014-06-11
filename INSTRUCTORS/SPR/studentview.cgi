@@ -238,7 +238,7 @@ sub needed_for_rating {
   while (my $ans = $get_info->fetchrow_hashref()) {
     $required{$ans->{'number'}}++; 
     }
-  my $sql = qq( select number, mode from student_syllabus3 where handle='$handle' and mode = 4 and signoff_date <= '$date_of');
+  my $sql = qq( select number, mode from student_syllabus3 where handle='$handle' and mode::integer = 4 and signoff_date <= '$date_of');
   my $get_info = $dbh->prepare($sql);
   $get_info->execute();
   while (my $ans = $get_info->fetchrow_hashref()) {
@@ -276,7 +276,7 @@ sub needed_for_solo {
   while (my $ans = $get_info->fetchrow_hashref()) {
     $required{$ans->{'number'}}++; 
     }
-  my $sql = qq( select number, mode from student_syllabus3 where handle='$handle' and mode != 5 and mode >= 3 and signoff_date <= '$date_of');
+  my $sql = qq( select number, mode from student_syllabus3 where handle='$handle' and mode::integer != 5 and mode::integer >= 3 and signoff_date <= '$date_of');
   my $get_info = $dbh->prepare($sql);
   $get_info->execute();
   while (my $ans = $get_info->fetchrow_hashref()) {
@@ -318,7 +318,7 @@ sub fetch_count_list {
   my $handle = shift;
   my $mode = shift;
   my $get_info = $dbh->prepare(qq#
-	select count(*) from student_syllabus3 where handle = '$handle' and mode = '$mode' #);
+	select count(*) from student_syllabus3 where handle = '$handle' and mode::integer = '$mode' #);
   $get_info->execute();
   $get_info->fetchrow();
   }
@@ -946,13 +946,13 @@ sub column_for_this_flight {
   $flight_colspan{$flight_date}{$instructor}++; 
   if ($days_ago eq '<i>Max</i>') {
     $sql = sprintf <<EOM;
-select number, max(mode) as mode from student_syllabus3 where ( handle='$handle' and mode != 5 )
+select number, max(mode) as mode from student_syllabus3 where ( handle='$handle' and mode::integer != 5 )
 	group by number;
 EOM
     }
   elsif ($days_ago eq '<i>Prev</i>') {
     $sql = sprintf <<EOM;
-select number, max(mode) as mode from student_syllabus3 where ( handle='$handle' and signoff_date < '$flight_date' and mode != 5) group by number;
+select number, max(mode) as mode from student_syllabus3 where ( handle='$handle' and signoff_date < '$flight_date' and mode::integer != 5) group by number;
 EOM
     }
   else {
