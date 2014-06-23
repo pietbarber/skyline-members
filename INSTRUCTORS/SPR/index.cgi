@@ -676,7 +676,7 @@ sub submit_final_report {
 	$the_instructor, 
 	$qual_notes
 	);
-      print "Attempting to insert this SQL: <pre>$sql</pre><br>\n";
+      print "Attempting to insert this SQL: <pre>$sql</pre><br>\n" if $DEBUG;
       please_to_inserting($sql); 
       }
 
