@@ -767,6 +767,8 @@ sub javascript {
 			],
 		toolbar: "insertfile undo redo | styleselect | bold italic underline superscript subscript| alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image",
 		autosave_ask_before_unload: false,
+		relative_urls : false,
+        	convert_urls: false,
 		});
 </script>
 EOM
