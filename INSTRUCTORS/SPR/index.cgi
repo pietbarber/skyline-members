@@ -842,6 +842,7 @@ sub full_javascript {
 		autosave_ask_before_unload: false,
 		relative_urls : false,
         	convert_urls: false,
+		browser_spellcheck : true,
 		});
 </script>
 EOM
