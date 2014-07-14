@@ -843,6 +843,8 @@ sub full_javascript {
 		relative_urls : false,
         	convert_urls: false,
 		browser_spellcheck : true,
+		plugins: "spellchecker",
+		toolbar: "spellchecker"
 		});
 </script>
 EOM
