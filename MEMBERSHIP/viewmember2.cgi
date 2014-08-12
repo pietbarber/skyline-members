@@ -32,6 +32,7 @@ my (%quals) = (
 	'DutyOfficer'	=> {img => 'DutyOfficer.jpg', desc => 'Duty Officer and Logsheets'},
 	'ADO'		=> {img => 'ADO.jpg', desc => 'Assistant Duty Officer'},
 	'SafetyMeeting' => {img => 'SafetyMeeting.jpg', desc => 'Attended Safety Meeting'},
+	'Orientation' => {img => 'New-Member.jpg', desc => 'Attended New Member Orientation Meeting'},
 	);
 
 
