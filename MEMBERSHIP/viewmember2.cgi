@@ -14,27 +14,31 @@ my %admins = fetch_admins();
 #my %admins = ();
 #
 
-my (%quals) = (
-	'ASK-Front'	=> {img => 'ASK-Front.jpg', desc => 'ASK-Front Seat PIC'},
-	'ASK-Back'	=> {img => 'ASK-Back.jpg', desc => 'ASK-Back Seat PIC'},
-	'Grob-Front'	=> {img => 'Grob-Front.jpg', desc => 'Grob Front Seat PIC'},
-	'Grob-Back'	=> {img => 'Grob-Back.jpg', desc => 'Grob Back Seat PIC'},
-	'ASK-Student'	=> {img => 'ASK-Student.jpg', => 'Student Solo ASK-21'},
-	'Grob-Student'	=> {img => 'Grob-Student', => 'Student Solo Grob 103'},
-	'Sprite-Student'	=> {img => 'Sprite-Student.jpg', desc => 'Student Solo Sprite'},
-	'Sprite'	=> {img => 'Sprite.jpg', desc => 'Sprite PIC'},
-	'TowPilot'	=> {img => 'TowPilot.jpg', desc => 'Tow Pilot'},
-	'Pawnee'	=> {img => 'Pawnee.jpg', desc => 'Pawnee Tow Pilot'},
-	'Husky'		=> {img => 'Husky.jpg', desc => 'Husky Tow Pilot'},
-	'WingRunner'	=> {img => 'Wingrunner.jpg', desc => 'Wing-Runner Qualified'},
-	'CFI'		=> {img => 'Instructor.jpg', desc => 'Club Flight Instructor'},
-	'Cirrus'	=> {img => 'Cirrus.jpg', desc => 'Cirrus PIC and Assembly'},
-	'DutyOfficer'	=> {img => 'DutyOfficer.jpg', desc => 'Duty Officer and Logsheets'},
-	'ADO'		=> {img => 'ADO.jpg', desc => 'Assistant Duty Officer'},
-	'SafetyMeeting' => {img => 'SafetyMeeting.jpg', desc => 'Attended Safety Meeting'},
-	'Orientation' => {img => 'New-Member.jpg', desc => 'Attended New Member Orientation Meeting'},
-	);
+#my (%quals) = (
+#	'ASK-Front'	=> {img => 'ASK-Front.jpg', desc => 'ASK-Front Seat PIC'},
+#	'ASK-Back'	=> {img => 'ASK-Back.jpg', desc => 'ASK-Back Seat PIC'},
+#	'Grob-Front'	=> {img => 'Grob-Front.jpg', desc => 'Grob Front Seat PIC'},
+#	'Grob-Back'	=> {img => 'Grob-Back.jpg', desc => 'Grob Back Seat PIC'},
+#	'ASK-Student'	=> {img => 'ASK-Student.jpg', => 'Student Solo ASK-21'},
+#	'Grob-Student'	=> {img => 'Grob-Student', => 'Student Solo Grob 103'},
+#	'Sprite-Student'	=> {img => 'Sprite-Student.jpg', desc => 'Student Solo Sprite'},
+#	'Sprite'	=> {img => 'Sprite.jpg', desc => 'Sprite PIC'},
+#	'TowPilot'	=> {img => 'TowPilot.jpg', desc => 'Tow Pilot'},
+#	'Pawnee'	=> {img => 'Pawnee.jpg', desc => 'Pawnee Tow Pilot'},
+#	'Husky'		=> {img => 'Husky.jpg', desc => 'Husky Tow Pilot'},
+#	'WingRunner'	=> {img => 'Wingrunner.jpg', desc => 'Wing-Runner Qualified'},
+#	'CFI'		=> {img => 'Instructor.jpg', desc => 'Club Flight Instructor'},
+#	'Cirrus'	=> {img => 'Cirrus.jpg', desc => 'Cirrus PIC and Assembly'},
+#	'DutyOfficer'	=> {img => 'DutyOfficer.jpg', desc => 'Duty Officer and Logsheets'},
+#	'ADO'		=> {img => 'ADO.jpg', desc => 'Assistant Duty Officer'},
+#	'SafetyMeeting' => {img => 'SafetyMeeting.jpg', desc => 'Attended Safety Meeting'},
+#	'Orientation' => {img => 'New-Member.jpg', desc => 'Attended New Member Orientation Meeting'},
+#	);
 
+my (%quals) =  please_to_fetching_unordered(
+      qq(select name, img_url, description, is_qual from endorsement_roles),
+        'name', 'img_url', 'description', 'is_qual'
+      );
 
 my (%status) = (
         'M'     =>      'Standard Member',
@@ -177,9 +181,9 @@ sub fetch_quals {
   my $count=0;
   while ( my $row = $get_info->fetchrow_hashref ) {
     $answer .= sprintf (qq(<img src="/INCLUDES/Qual-Icons/%s" alt="%s" width="70" height="70" onmouseover="Tip('%s')" onmouseout="UnTip('')">&nbsp), 
-	$quals{$row->{'role_name'}}{'img'}, 
-	$quals{$row->{'role_name'}}{'desc'},
-	$quals{$row->{'role_name'}}{'desc'}
+	$quals{$row->{'role_name'}}{'img_url'}, 
+	$quals{$row->{'role_name'}}{'description'},
+	$quals{$row->{'role_name'}}{'description'}
 	);
     if ($count++ % 5 == 4) {
       $answer .= "<br>\n"; 
@@ -256,7 +260,26 @@ sub read_from_db {
   %answer;
   }
 
-
+sub please_to_fetching_unordered {
+        # Take string as input
+        # Take array of the labels you want
+        # send that sql string to db
+        # Get output
+        # throw output into %answer array with @whatchuwant as keys, in order
+        # don't be cute, just be easy and simple.
+  my ($sql) = shift;
+  my (@whatchuwant) = @_;
+  my ($key_on) = $whatchuwant[0];
+  my (%answer);
+    my $get_info = $dbh->prepare($sql);
+  $get_info->execute();
+  while (my $ans = $get_info->fetchrow_hashref) {
+    for my $key (@whatchuwant) {
+      $answer{$ans->{$key_on}}{$key} = $ans->{$key};
+      }
+    }
+  %answer;
+  }
 
 
 __END__
@@ -531,8 +554,4 @@ EOM
 
   print "</table>";
   }
-
-
-
-
 
