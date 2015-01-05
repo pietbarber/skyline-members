@@ -16,7 +16,7 @@ use strict;             # Create extra hoops to jump through
 my ($DEBUG)=0; 		# Shut yer mouth with yer whinin' 
 my ($DEBUG)=1; 		# Be verbose with your whining. 
 my ($the_student)=$ENV{'REMOTE_USER'}; 	# So we can override occasionally
-#my ($the_student)='zbendorf'; 		# Override Here!
+my ($the_student)='kebelt1'; 		# Override Here!
 my ($dbh);              # Handle for DB connections
 my (%syllabus);		# Contains the syllabus
 my (%progress);		# Contains progress for somebody in particular
@@ -33,9 +33,6 @@ my %flight_colspan; 	# For when we have more than one flight per lesson session.
 	# Then print out all existing members; 
 	# active students
     print mini_javascript();
-    show_navigation($the_student); 
-    show_badges_earned($the_student);
-    show_quals($the_student);
     show_notes_page($the_student); 
     end_page();
     }
@@ -50,16 +47,10 @@ my %flight_colspan; 	# For when we have more than one flight per lesson session.
     if (param('notes') eq 'on') {
       start_page("Instruction Record for " . $handle_to_name{$the_student});
       print mini_javascript();
-      show_navigation($the_student); 
-      show_badges_earned($the_student);
-      show_quals($the_student);
       show_notes_page($the_student); 
       } 
     else {
       start_page($handle_to_name{$the_student});
-      show_navigation($the_student); 
-      show_badges_earned($the_student);
-      show_quals($the_student);
       show_current_syllabus($the_student); 
       } 
     end_page();
@@ -396,6 +387,8 @@ sub show_notes_page {
 <b>Note:</b> Flight totals and some counts are not included before 1 January 2005.<br>
 <b>Note:</b> Flight Instruction done before 1 June 2009 could not be scored at level <img src="/icons/blobs/blob4.png" align="absmiddle">  ) ; 
     print h2("Current Status in the Training Program:"); 
+    print qq(<a href="/STATS/?pilot=$student" target="_logbook">Show Flight Log</a> / \n); 
+    print qq(<a href="?student=$student">Show Instruction Grid</a>\n); 
     print qq(<table border="1">\n); 
     print qq(<tr align="center" bgcolor="#E0E0E0"><td>Flights (ASK)</td><td>Flights (Grob)</td><td>Flights (Sprite)</td><td>Flights (Total)<td>Total Flight Time</td><td>Sessions</td><td>Most Recent Flight</td><td>Instructors</td></tr>\n); 
 
@@ -434,7 +427,7 @@ sub show_notes_page {
     printf (qq(<tr align="center"><td>%s</td><td>%s</td><td>%s</td><td>%s<td>%s</td><td>%s</td><td>%s</td><td align="left">%s</td></tr>\n),
 	($flights{'ASK-21'}+0), 
 	($flights{'GROB 103'}+0), 
-	($flights{'Sprite'}+0), 
+	($flights{'SGS 1-36'}+0), 
 	($total_flights+0), 
 	$total_flight_time, 
 	$flight_sessions, 
@@ -448,6 +441,10 @@ sub show_notes_page {
     print dude_still_needs($student, today());
     print "</table></td></tr></table></ul>\n"; 
     }
+  else {
+    print qq(<a href="/STATS/?pilot=$student" target="_logbook">Show Flight Log</a> / \n); 
+    print qq(<a href="?student=$student">Show Instruction Grid</a>\n); 
+    }
 
   for my $date (reverse sort keys (%answer)) {
     print h3("Flights / Instruction on $date"); 
@@ -456,12 +453,6 @@ sub show_notes_page {
     print "</ul>\n"; 
     }
   } 
-
-sub show_navigation {
-  my $student=shift;
-  print qq(<a href="?">Return to Main</a> / <a href="/STATS/?pilot=$student" target="_logbook">Show Flight Log</a> / <a href="?student=$student">Show Instruction Grid</a>\n); 
-
-  }
 
 sub today {
         # What is today?
@@ -680,6 +671,8 @@ EOM
       printf qq(<tr align="left"><td><td colspan="3" align="left"><a href="?student=%s">Show 20 most recent flights</a></td>),
 	$user;
       }
+    printf (qq(<td><a href="/STATS/?pilot=$user">Show Flight Log</a><br><a href="?student=$user&notes=on">Show Instruction Record</a> </td> </tr>)); 
+
 
 
   print "</table><br>\n";
@@ -1211,114 +1204,4 @@ sub leet {
   0;
   }
 
-
-sub show_badges_earned {
-  my ($handle) = shift; 
-  my ($badge_count); 
-  my (%badges) = (
-        'A' => '/images/A-Badge.png',
-        'B' => '/images/B-Badge.png',
-        'C' => '/images/C-Badge.png',
-        'Bronze Badge' => '/images/Bronze%20Badge.png',
-        'Silver Badge' => '/images/Silver%20Badge.png',
-        'Gold Badge' => '/images/Gold%20Badge.png',
-        'Diamond Badge' => '/images/Diamond%20Badge.png',
-        );
-
-  my (@badge_order) = (
-        'A',
-        'B',
-        'C',
-        'Bronze Badge',
-        'Silver Badge',
-        'Silver Distance',
-        'Silver Duration',
-        'Gold Altitude',
-        'Gold Badge',
-        'Silver Altitude',
-        'Diamond Altitude',
-        'Diamond Badge',
-        'Diamond Distance',
-        'Diamond Goal',
-        );
-
-  print qq(<table border="0">);
-  my (%badges_earned)= please_to_fetching_unordered(
-    sprintf (qq(select badge, earned_date from badges_earned where handle='%s'), $handle),
-        'badge', 'earned_date'
-        );
-
-    for my $badge (@badge_order) {
-      if ($badges{$badges_earned{$badge}{'badge'}}) {
-        $badge_count++;
-        printf (qq(<td align="center" valign="top"><img src="%s" alt="%s" width="50"><br>%s<br><font size="-1">%s</font>\n),
-                $badges{$badges_earned{$badge}{'badge'}},
-                $badges_earned{$badge}{'badge'},
-                $badges_earned{$badge}{'badge'},
-                $badges_earned{$badge}{'earned_date'}
-                );
-         }
-      elsif ($badges_earned{$badge}{'badge'}) {
-        $badge_count++;
-        printf (qq(<td>%s<br>%s\n</td>\n),
-                $badges_earned{$badge}{'badge'},
-                $badges_earned{$badge}{'earned_date'}
-                );
-        }
-      }
-    #print qq(</table>\n);
-
-  if ($badge_count < 1) {
-    print "<td><i>None</i></td></tr>\n"; 
-    }
-  print qq(</table>\n);
-  }
-
-
-sub please_to_fetching_unordered {
-        # Take string as input
-        # Take array of the labels you want 
-        # send that sql string to db 
-        # Get output 
-        # throw output into %answer array with @whatchuwant as keys, in order
-        # don't be cute, just be easy and simple. 
-  my ($sql) = shift;
-  my (@whatchuwant) = @_;
-  my ($key_on) = $whatchuwant[0];
-  my (%answer);
-    my $get_info = $dbh->prepare($sql);
-  $get_info->execute();
-  while (my $ans = $get_info->fetchrow_hashref) {
-    for my $key (@whatchuwant) {
-      $answer{$ans->{$key_on}}{$key} = $ans->{$key};
-      }
-    }
-  %answer;
-  }
-
-
-sub show_quals {
-	# Show qualifications.  These might be qualificaitons that members
-	# have earned through their tenure.  This is also the way that we are
-	# going to check the status of this member attending the spring safety meeting. 
-	
-  my ($handle) = shift; 
-  my (%quals) =  please_to_fetching_unordered(
-    qq(select name, img_url, description, is_qual from endorsement_roles),
-      'name', 'img_url', 'description', 'is_qual'	
-    );
-  my (%dude_qual) = please_to_fetching_unordered(
-    sprintf (qq(select role_name, is_qualified, expires, expiration_date, instructor, notes from quals where handle='%s' and is_qualified=TRUE), $handle), 
-	'role_name', 'is_qualified', 'expires', 'expiration_date', 'instructor', 'notes'
-	);
-
-  for my $is_qualified (sort %dude_qual) {
-    next if $quals{$is_qualified}{'img_url'} eq '';
-    printf (qq(<img src="/INCLUDES/Qual-Icons/%s" alt="%s" width="50" height="50" onmouseover="Tip('%s')" onmouseout="UnTip('')">\n),
-	$quals{$is_qualified}{'img_url'},
-	$quals{$is_qualified}{'description'},
-	$quals{$is_qualified}{'description'},
-	);
-      }
-  }
 __END__
