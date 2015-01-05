@@ -16,7 +16,7 @@ use strict;             # Create extra hoops to jump through
 my ($DEBUG)=0; 		# Shut yer mouth with yer whinin' 
 my ($DEBUG)=1; 		# Be verbose with your whining. 
 my ($the_student)=$ENV{'REMOTE_USER'}; 	# So we can override occasionally
-my ($the_student)='kebelt1'; 		# Override Here!
+#my ($the_student)='kebelt1'; 		# Override Here!
 my ($dbh);              # Handle for DB connections
 my (%syllabus);		# Contains the syllabus
 my (%progress);		# Contains progress for somebody in particular
