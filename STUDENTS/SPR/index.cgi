@@ -16,7 +16,7 @@ use strict;             # Create extra hoops to jump through
 my ($DEBUG)=0; 		# Shut yer mouth with yer whinin' 
 my ($DEBUG)=1; 		# Be verbose with your whining. 
 my ($the_student)=$ENV{'REMOTE_USER'}; 	# So we can override occasionally
-#my ($the_student)='kebelt1'; 		# Override Here!
+#my ($the_student)='jbarber'; 		# Override Here!
 my ($dbh);              # Handle for DB connections
 my (%syllabus);		# Contains the syllabus
 my (%progress);		# Contains progress for somebody in particular
@@ -29,10 +29,13 @@ my %flight_colspan; 	# For when we have more than one flight per lesson session.
 
   if (!param) {
 	# If the page is loaded with no parameters, 
-    start_page(sprintf('Training Record for %s', $handle_to_name{$the_student}) );
+    start_page(sprintf('Instruction Record for %s', $handle_to_name{$the_student}) );
 	# Then print out all existing members; 
 	# active students
     print mini_javascript();
+    show_navigation($the_student);
+    show_badges_earned($the_student);
+    show_quals($the_student);
     show_notes_page($the_student); 
     end_page();
     }
@@ -47,10 +50,16 @@ my %flight_colspan; 	# For when we have more than one flight per lesson session.
     if (param('notes') eq 'on') {
       start_page("Instruction Record for " . $handle_to_name{$the_student});
       print mini_javascript();
+      show_navigation($the_student);
+      show_badges_earned($the_student);
+      show_quals($the_student);
       show_notes_page($the_student); 
       } 
     else {
-      start_page($handle_to_name{$the_student});
+      start_page('Instruction Grid for '. $handle_to_name{$the_student});
+      show_navigation($the_student);
+      #show_badges_earned($the_student);
+      #show_quals($the_student);
       show_current_syllabus($the_student); 
       } 
     end_page();
@@ -385,65 +394,19 @@ sub show_notes_page {
     print qq(<ul><table border="0" bgcolor="#F8F8FF"><tr><td>\n); 
     print qq(According to our records, you do not have a glider rating. If this is incorrect, please notify the Member Meister and the Chief Flight Instructor of any necessary corrections by sending an email to <a href="mailto:membermeister\@skylinesoaring.org">membermeister\@skylinesoaring.org</a> . Flights and instruction not done at Skyline Soaring Club will not be included in this Training Report.<br>
 <b>Note:</b> Flight totals and some counts are not included before 1 January 2005.<br>
-<b>Note:</b> Flight Instruction done before 1 June 2009 could not be scored at level <img src="/icons/blobs/blob4.png" align="absmiddle">  ) ; 
+<b>Note:</b> Flight Instruction done before 1 June 2009 could not be scored at level <img src="/icons/blobs/blob4.png" align="absmiddle"></table></ul>  ) ; 
     print h2("Current Status in the Training Program:"); 
-    print qq(<a href="/STATS/?pilot=$student" target="_logbook">Show Flight Log</a> / \n); 
-    print qq(<a href="?student=$student">Show Instruction Grid</a>\n); 
-    print qq(<table border="1">\n); 
-    print qq(<tr align="center" bgcolor="#E0E0E0"><td>Flights (ASK)</td><td>Flights (Grob)</td><td>Flights (Sprite)</td><td>Flights (Total)<td>Total Flight Time</td><td>Sessions</td><td>Most Recent Flight</td><td>Instructors</td></tr>\n); 
-
-    my (%flights, @instructors, $total_flight_time, $max_date); 
-
-    my ($sql)=qq#select glider, count(*) as count from flight_info where pilot='$student' group by glider#;
-    my $get_info = $dbh->prepare($sql);
-    $get_info->execute();
-    while (my $ans = $get_info->fetchrow_hashref()) {
-      $flights{$ans->{'glider'}}=$ans->{'count'}; 
-      }
-
-    my ($sql)=qq#select distinct instructor from flight_info where pilot='$student' and instructor != ''#;
-    my $get_info = $dbh->prepare($sql);
-    $get_info->execute();
-    while (my $ans = $get_info->fetchrow_hashref()) {
-      push (@instructors, $handle_to_name{$ans->{'instructor'}}); 
-      }
-
-    my ($total_flights); 
-    my ($sql)=qq#select count(*) from flight_info where pilot='$student'#;
-    my $get_info = $dbh->prepare($sql);
-    $get_info->execute();
-    while (my $ans = $get_info->fetchrow_hashref()) {
-      $total_flights=$ans->{'count'}; 
-      }
-
-    my ($sql)=qq#select max(flight_date) as max_date, sum(flight_time) as totals from flight_info where pilot='$student'#;
-    my $get_info = $dbh->prepare($sql);
-    $get_info->execute();
-    while (my $ans = $get_info->fetchrow_hashref()) {
-      $max_date=$ans->{'max_date'}; 
-      $total_flight_time=$ans->{'totals'}; 
-      }
-
-    printf (qq(<tr align="center"><td>%s</td><td>%s</td><td>%s</td><td>%s<td>%s</td><td>%s</td><td>%s</td><td align="left">%s</td></tr>\n),
-	($flights{'ASK-21'}+0), 
-	($flights{'GROB 103'}+0), 
-	($flights{'SGS 1-36'}+0), 
-	($total_flights+0), 
-	$total_flight_time, 
-	$flight_sessions, 
-	$max_date, 
-	join (", ", @instructors), 
-	
-	); 
-
-    print qq(</table><br>\n); 
-    print qq(<table border="1">\n); 
-    print dude_still_needs($student, today());
-    print "</table></td></tr></table></ul>\n"; 
     }
   else {
-    print qq(<a href="/STATS/?pilot=$student" target="_logbook">Show Flight Log</a> / \n); 
-    print qq(<a href="?student=$student">Show Instruction Grid</a>\n); 
+    print h2("Flying Summary:");
+    }
+  flight_summary_box($student);
+  print "<br>";
+
+  if (! has_a_rating($student)) { 
+    print qq(<table border="1">\n); 
+    print dude_still_needs($student, today());
+    print "</table></ul>\n"; 
     }
 
   for my $date (reverse sort keys (%answer)) {
@@ -454,6 +417,132 @@ sub show_notes_page {
     }
   } 
 
+sub flight_summary_box {
+	# A little table that shows the sums of all the gliders $the_student
+	# has flown at this flying club. 
+	# Also has the last date that each glider was flown. 
+	# Not as pretty as I'd like, but the output format is nice!
+  my ($student) = shift; 
+  my (%flight_totals, %flight_dual, %flight_solo, %inst_given, @solo_totals, @dual_totals, @inst_totals, @total_totals, @gliders); 
+  my $sql=qq#select distinct glider from flight_info where pilot='$student' or instructor='$student' order by glider#; 
+  my $get_info=$dbh->prepare($sql); 
+  $get_info->execute(); 
+  while (my $ans = $get_info->fetchrow_hashref()) {
+    push (@gliders, $ans->{'glider'} ) 
+    }
+  %flight_totals = please_to_fetching_unordered(sprintf (
+		qq#select glider, count(*) as count, sum(flight_time) as flight_time, max(flight_date) as last_date from flight_info where pilot='%s' or instructor='%s' group by glider #, 
+		$student, $student),
+        'glider', 'count', 'flight_time', 'last_date'
+        );
+
+  %flight_solo = please_to_fetching_unordered(sprintf (
+		qq#select glider, count(*) as count, sum(flight_time) as flight_time, max(flight_date) as last_date from flight_info where pilot='%s' and instructor='' and passenger='' group by glider#, 
+		$student),
+        'glider', 'count', 'flight_time', 'last_date'
+        );
+
+  %flight_dual = please_to_fetching_unordered(sprintf (
+		qq#select glider, count(*) as count, sum(flight_time) as flight_time, max(flight_date) as last_date from flight_info where pilot='%s' and instructor!='' group by glider#, 
+		$student),
+        'glider', 'count', 'flight_time', 'last_date'
+        );
+
+  %inst_given = please_to_fetching_unordered(sprintf (
+		qq#select glider, count(*) as count, sum(flight_time) as flight_time, max(flight_date) as last_date from flight_info where instructor='%s' group by glider#, 
+		$student), 
+        'glider', 'count', 'flight_time', 'last_date'
+        );
+  @solo_totals = please_to_fetching_single(sprintf (
+		qq#select count(*) as count, sum(flight_time) as flight_time, max(flight_date) as last_date from flight_info where (pilot='%s' and instructor='' and passenger='')#, 
+		$student, $student), 
+	'count', 'flight_time', 'last_date'
+	);
+  @dual_totals = please_to_fetching_single(sprintf (
+		qq#select count(*) as count, sum(flight_time) as flight_time, max(flight_date) as last_date from flight_info where (pilot='%s' and instructor!='')#, 
+		$student, $student), 
+	'count', 'flight_time', 'last_date'
+	);
+  @inst_totals = please_to_fetching_single(sprintf (
+		qq#select count(*) as count, sum(flight_time) as flight_time, max(flight_date) as last_date from flight_info where (instructor='%s')#, 
+		$student), 
+	'count', 'flight_time', 'last_date'
+	);
+  @total_totals = please_to_fetching_single(sprintf (
+		qq#select count(*) as count, sum(flight_time) as flight_time, max(flight_date) as last_date from flight_info where (pilot='%s' or instructor='%s')#, 
+		$student, $student), 
+	'count', 'flight_time', 'last_date'
+	);
+ 
+
+
+  print qq(<b>Note:</b> The following summary only includes flights since 1 Jan 2005.<br>\n);
+  if (length(@gliders) > 0) { # Check to see if dude has any flights at all
+    printf qq(<table border="1" cellpadding="2" cellspacing="2" bgcolor="#F8F8F8"><tr bgcolor="#000000"><td align="center" rowspan="2" bgcolor="#000000"><font color="#FFFFFF">Glider</font></td>\n);
+
+    print qq(<td colspan="3" align="center"><font color="#FFFFFF">Solo Flights</font> </td>);
+    print qq(<td colspan="3" align="center"><font color="#FFFFFF">With Instructor</font> </td>); 
+    printf qq(<td colspan="3" align="center"><font color="#FFFFFF">Instruction Given</font></td>) if (scalar (%inst_given) ne '0' && is_user_instructor($the_student)); 
+    printf qq(<td colspan="3" align="center"><font color="#FFFFFF">Total Flights</font></td>); 
+    printf qq(</tr>\n);
+    printf qq(<tr bgcolor="#000000">);
+    print qq(<td align="right"><font color="#FFFFFF">#</font></td><td align="right"><font color="#FFFFFF">Time</font></td><td align="right"><font color="#FFFFFF">Last Flight</font></td>);
+    print qq(<td align="right"><font color="#FFFFFF">#</font></td><td align="right"><font color="#FFFFFF">Time</font></td><td align="right"><font color="#FFFFFF">Last Flight</font></td>);
+    print qq(<td align="right"><font color="#FFFFFF">#</font></td><td align="right"><font color="#FFFFFF">Time</font></td><td align="right"><font color="#FFFFFF">Last Flight</font></td>) if (scalar (%inst_given) ne '0' && is_user_instructor($the_student));
+    print qq(<td align="right"><font color="#FFFFFF">#</font></td><td align="right"><font color="#FFFFFF">Time</font></td><td align="right"><font color="#FFFFFF">Last Flight</font></td>);
+    print "</tr>\n";
+    
+    for my $glider (sort @gliders) {
+      printf qq(<tr><td align="right">%s</td>\n), 
+	$flight_totals{$glider}->{'glider'} 
+		if (exists ($flight_solo{$glider}->{'count'}) || exists($flight_dual{$glider}->{'count'}) || exists($inst_given{$glider}->{'count'}) || exists($flight_totals{$glider}->{'count'}));
+      printf qq(<td align="right">%s</td><td align="right">%s</td><td>%s</td>), 
+	$flight_solo{$glider}->{'count'}, 
+	time_snip($flight_solo{$glider}->{'flight_time'}),
+	$flight_solo{$glider}->{'last_date'};
+      printf qq(<td align="right">%s</td><td align="right">%s</td><td>%s</td>), 
+	$flight_dual{$glider}->{'count'}, 
+	time_snip($flight_dual{$glider}->{'flight_time'}),
+	$flight_dual{$glider}->{'last_date'};
+       printf qq(<td align="right">%s</td><td align="right">%s</td><td>%s</td>), 
+	$inst_given{$glider}->{'count'}, 
+	time_snip($inst_given{$glider}->{'flight_time'}),
+	$inst_given{$glider}->{'last_date'}
+		if exists($flight_totals{$glider}->{'count'}) && is_user_instructor($the_student); 
+        printf qq(<td align="right">%s</td><td align="right">%s</td><td>%s</td>), 
+	$flight_totals{$glider}->{'count'}, 
+	time_snip($flight_totals{$glider}->{'flight_time'}),
+	$flight_totals{$glider}->{'last_date'};
+ 
+      print "</tr>\n";
+      }
+    print qq(<tr bgcolor="#E8E8E8" align="right"><td>Totals:</td>\n);
+    printf qq(<td>%s</td><td>%s</td><td>%s</td>),
+	$solo_totals[0], time_snip($solo_totals[1]), $solo_totals[2];
+    printf qq(<td>%s</td><td>%s</td><td>%s</td>),
+	$dual_totals[0], time_snip($dual_totals[1]), $dual_totals[2];
+    printf qq(<td>%s</td><td>%s</td><td>%s</td>),
+	$inst_totals[0], time_snip($inst_totals[1]), $inst_totals[2] if is_user_instructor($the_student); 
+    printf qq(<td>%s</td><td>%s</td><td>%s</td>),
+	$total_totals[0], time_snip($total_totals[1]), $total_totals[2];
+
+    print "</table>\n"; 
+    }
+  else {
+    print qq(<i>No flight training at Skyline is on record.</i><br>);
+    }
+  }
+
+
+sub time_snip {
+	# Take an ugly HHH:MM:00 and convert it to 
+	# a beautiful HHH:MM. 
+  my ($input) = shift; 
+  my ($answer); 
+  $answer =$input; 
+  $answer =~ s/^(\d+:\d+):00$/$1/; 
+  $answer;
+  }
 sub today {
         # What is today?
         # We can probably purge this
@@ -566,51 +655,70 @@ sub show_verbose_report {
   } 
 
 sub dude_still_needs {
- 	# If this guy is a non-rated pilot, he probably still has some lesson 
-	# entries that are needed to be wiped out before he soloes or gets his 
-	# check-off for a rating.  This is the section to show what he still needs 
-	# to do. 
-	# We input the student, the date of what is still needed (is this necessary?)
-	# and go through the db trying to find what he still needs.  
-  my ($student)=shift; 
-  my ($date)=shift; 
-  my ($answer); 
+        # If this guy is a non-rated pilot, he probably still has some lesson
+        # entries that are needed to be wiped out before he soloes or gets his
+        # check-off for a rating.  This is the section to show what he still needs
+        # to do.
+        # We input the student, the date of what is still needed (is this necessary?)
+        # and go through the db trying to find what he still needs.
+  my ($student)=shift;
+  my ($date)=shift;
+  my ($answer);
   my (%output_names)=lesson_fields();
-  my %still_needs = needed_for_solo($student,  $date);  
-  $answer .= sprintf qq(<tr><td bgcolor="#cccccc"><i>Progress Toward Solo:</i></td><td>%s</td></tr>\n), percent_complete($student); 
+  my %still_needs = needed_for_solo($student,  $date);
+  $answer .= sprintf qq(<tr><td bgcolor="#cccccc"><i>Progress Toward Solo:</i></td><td>%s</td></tr>\n), percent_complete($student);
 
   $answer .= qq(<tr><td bgcolor="#cccccc"><i>Needs&nbsp;<img src="/icons/blobs/blob3.png" align="absmiddle">&nbsp;or&nbsp;<img src="/icons/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Solo</i></td><td>);
   my ($output_count)=0;
-  for my $field (sort keys (%still_needs)) {
 
-    $answer .= sprintf (qq(<a href="/TRAINING/Syllabus/%s.shtml" target="_syllabus" onmouseover="Tip('%s')" onmouseout="UnTip('')">%s</a>, ), 
-		$field,
-		$output_names{$field},
-		$field
-		);
+  for my $field (sort keys (%still_needs)) {
+    my ($the_field);
+    if (scalar(keys(%still_needs)) > 15) {
+        $the_field=$field;
+        }
+    else {
+        $the_field = $output_names{$field};
+        }
+    $answer .= sprintf (qq(<a href="/TRAINING/Syllabus/%s.shtml" target="_syllabus" onmouseover="Tip('%s')" onmouseout="UnTip('')">%s</a>, ),
+                $field,
+                $output_names{$field},
+                $the_field
+                );
     $output_count++;
     }
   if ($output_count == 0) {
-    $answer .= qq(<i>None</i>); 
+    $answer .= qq(<i>None</i>);
     }
-  $answer .= qq(</td></tr>), 
-  my %still_needs = needed_for_rating($student, $date);  
+  $answer .= qq(</td></tr>),
+  my %still_needs = needed_for_rating($student, $date);
   $answer .= qq(<tr><td bgcolor="#cccccc"><i>Needs <img src="/icons/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Rating</i></td><td>);
   my ($output_count)=0;
   for my $field (sort keys (%still_needs)) {
-    $answer .= sprintf (qq(<a href="/TRAINING/Syllabus/%s.shtml" target="_syllabus" onmouseover="Tip('%s')" onmouseout="UnTip('')">%s</a>, ), 
-		$field,
-		$output_names{$field},
-		$field
-		);
+    my ($the_field);
+    if (scalar(keys(%still_needs)) > 15) {
+        $the_field=$field;
+        }
+    else {
+        $the_field = $output_names{$field};
+        }
+   $answer .= sprintf (qq(<a href="/TRAINING/Syllabus/%s.shtml" target="_syllabus" onmouseover="Tip('%s')" onmouseout="UnTip('')">%s</a>, ),
+                $field,
+                $output_names{$field},
+                $the_field
+                );
     $output_count++;
     }
   if ($output_count == 0) {
-    $answer .= qq(<i>None</i>); 
+    $answer .= qq(<i>None</i>);
     }
-  $answer .= qq(</td></tr>); 
+  $answer .= qq(</td></tr>);
   $answer
   }
+
+
+
+
+
 
 sub lesson_labels { 
  	# Given a list of lesson numbers ( 1a, 1b, 1c, etc) 
@@ -648,6 +756,7 @@ sub show_current_syllabus {
   print hidden('handle', $user);	# we have to secretly include the handle
   #print h2("$handle_to_name{$user}");	# print out the title at the top of the page with dude's name
   print <<EOM;
+<br>
 <table border="0">  
 <tr align="center"><td bgcolor="#888888" colspan="5"><font color="#FFFFFF">Key:</font></td></tr>
 <td><img src="/icons/blobs/blob0.png"></td><td>Not Covered</td><td>&nbsp;</td>
@@ -671,7 +780,7 @@ EOM
       printf qq(<tr align="left"><td><td colspan="3" align="left"><a href="?student=%s">Show 20 most recent flights</a></td>),
 	$user;
       }
-    printf (qq(<td><a href="/STATS/?pilot=$user">Show Flight Log</a><br><a href="?student=$user&notes=on">Show Instruction Record</a> </td> </tr>)); 
+    #printf (qq(<td><a href="/STATS/?pilot=$user">Show Flight Log</a><br><a href="?student=$user&notes=on">Show Instruction Record</a> </td> </tr>)); 
 
 
 
@@ -1104,81 +1213,6 @@ sub enter_data_table {
 	);
   }
 
-sub mail_instructor_report {
-	# I don't think this actually sends anything useful for now
-	# I also don't know if it's being called yet. 
-	# I should really look into this
-	# FIXME
-  open (SENDMAIL, "|-")
-        || exec ('/usr/sbin/sendmail', '-t', '-oi');
-  my ($random_num);
-  my (@allow_chars) = (0..9);
-  for (1..24) {
-    $random_num .= $allow_chars[int(rand($#allow_chars))];
-    }
-  use HTML::Strip; 
-  my $hs = HTML::Strip->new();
-
-  my (@text_report) = (
-	($handle_labels{param('handle')} || sprintf ("%s, %s", param('lastname'), param('firstname'))),
-	$handle_labels{param('instructor')},
-	param('report_date'),
-	$hs->parse(param('text'))
-	);
-  
-  printf SENDMAIL "From: \"%s\" <%s\@skylinesoaring.org>\n", 
-	$handle_labels{param('instructor')}, 
-	param('instructor');
-  printf SENDMAIL "MIME-Version: 1.0\n";
-  printf SENDMAIL "X-Accept-Language: en-us, en\n";
-  #print SENDMAIL "To: \"Skyline Instructors\" <instructors\@skylinesoaring.org>\n";
-  print SENDMAIL "To: \"Piet Barber\" <pbarber\@skylinesoaring.org>\n";
-  #printf SENDMAIL "Subject: Instruction Report for %s\n", param('report_date');
-  printf SENDMAIL "Subject: IR for %s\n", $text_report[0];
-
-printf SENDMAIL <<EOM, @text_report, show_content(), end_html();
-Content-Type: multipart/alternative;
- boundary="------------$random_num"
-This is a multi-part message in MIME format.
---------------$random_num
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-    Instruction Report on file for %s
-
-         Instructor: %s
-Date of Instruction: %s
-
-%s
-
-Enter Instruction reports by going to: 
-http://members.skylinesoaring.org/INSTRUCTORS/Instructor%20Reports/
-------------------------------------------------------------------------
-
---------------$random_num
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-  <title>Instruction Report</title>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-%s
-
-Enter Instruction reports by going to: <br>
-<a href = "http://members.skylinesoaring.org/INSTRUCTORS/Instructor%20Reports/">http://members.skylinesoaring.org/INSTRUCTORS/Instructor%20Reports/</a>
-%s
---------------$random_num--
-
-
-EOM
-
-  close (SENDMAIL);
-  }
-
 sub escape {
 	# This is a really ghetto way of escaping input. 
 	# if i was smart i would use a Perl module that escapes properly. 
@@ -1202,6 +1236,171 @@ sub print_hidden_fields {
 sub leet {
   # ($ENV{'REMOTE_USER'} eq 'pbarber' || $ENV{'REMOTE_USER'} eq 'jkellett');
   0;
+  }
+
+sub show_badges_earned {
+  my ($handle) = shift;
+  my ($badge_count);
+  my (%badges) = (
+        'A' => '/images/A-Badge.png',
+        'B' => '/images/B-Badge.png',
+        'C' => '/images/C-Badge.png',
+        'Bronze Badge' => '/images/Bronze%20Badge.png',
+        'Silver Badge' => '/images/Silver%20Badge.png',
+        'Gold Badge' => '/images/Gold%20Badge.png',
+        'Diamond Badge' => '/images/Diamond%20Badge.png',
+        );
+  my (@badge_order) = (
+        'A',
+        'B',
+        'C',
+        'Bronze Badge',
+        'Silver Badge',
+        'Silver Distance',
+        'Silver Duration',
+        'Gold Altitude',
+        'Gold Badge',
+        'Silver Altitude',
+        'Diamond Altitude',
+        'Diamond Badge',
+        'Diamond Distance',
+        'Diamond Goal',
+        );
+
+  print qq(<h2>Badges Earned:</h2>\n);
+  print qq(<table border="0" bgcolor="#F8F8F8">);
+  my (%badges_earned)= please_to_fetching_unordered(
+    sprintf (qq(select badge, earned_date from badges_earned where handle='%s'), $handle),
+        'badge', 'earned_date'
+        );
+
+      for my $badge (@badge_order) {
+        $badge_count++;
+        if ($badges_earned{'Silver Badge'}{'badge'}) {
+          delete ($badges_earned{'Silver Distance'}{'badge'});
+          delete ($badges_earned{'Silver Altitude'}{'badge'});
+          delete ($badges_earned{'Silver Duration'}{'badge'});
+          }
+
+        if ($badges_earned{'Gold Badge'}{'badge'}) {
+          delete ($badges_earned{'Gold Distance'}{'badge'});
+          delete ($badges_earned{'Gold Altitude'}{'badge'});
+          delete ($badges_earned{'Gold Distance'}{'badge'});
+          }
+
+        if ($badges{$badges_earned{$badge}{'badge'}}) {
+          printf (qq(<td align="center" valign="top"><img src="%s" alt="%s" width="50"><br>%s<br><font size="-1">%s</font>\n),
+                $badges{$badges_earned{$badge}{'badge'}},
+                $badges_earned{$badge}{'badge'},
+                $badges_earned{$badge}{'badge'},
+                $badges_earned{$badge}{'earned_date'}
+                );
+          }
+        elsif ($badges_earned{$badge}{'badge'}) {
+          printf (qq(<td>%s<br>%s\n</td>\n),
+                $badges_earned{$badge}{'badge'},
+                $badges_earned{$badge}{'earned_date'}
+                );
+          }
+      }
+    #print qq(</table>\n);
+
+  if ($badge_count < 1) {
+    print "<td><i>None</i></td></tr>\n";
+    }
+  print qq(</table>\n);
+  }
+
+
+sub please_to_fetching_single {
+        # Take SQL string as input
+        # send that sql string to db
+        # Get output
+        # throw output into @answer array, which was @_ minus the SQL
+	# This pretty much presumes there's only one row returned from the DB, 
+	# otherwise your array is going to be super long. 
+  my ($sql) = shift;
+  my (@whatchuwant) = @_;
+  my (@answer);
+    my $get_info = $dbh->prepare($sql);
+  $get_info->execute();
+  while (my $ans = $get_info->fetchrow_hashref) {
+    for my $key (@whatchuwant) {
+      push (@answer, $ans->{$key});
+      }
+    }
+  @answer;
+  }
+
+
+
+sub please_to_fetching_unordered {
+        # Take string as input
+        # Take array of the labels you want
+        # send that sql string to db
+        # Get output
+        # throw output into %answer array with @whatchuwant as keys, in order
+        # don't be cute, just be easy and simple.
+  my ($sql) = shift;
+  my (@whatchuwant) = @_;
+  my ($key_on) = $whatchuwant[0];
+  my (%answer);
+    my $get_info = $dbh->prepare($sql);
+  $get_info->execute();
+  while (my $ans = $get_info->fetchrow_hashref) {
+    for my $key (@whatchuwant) {
+      $answer{$ans->{$key_on}}{$key} = $ans->{$key};
+      }
+    }
+  %answer;
+  }
+
+sub show_quals {
+        # Show qualifications.  These might be qualificaitons that members
+        # have earned through their tenure.  This is also the way that we are
+        # going to check the status of this member attending the spring safety meeting.
+
+  my ($handle) = shift;
+  my (%quals) =  please_to_fetching_unordered(
+    qq(select name, img_url, description, is_qual from endorsement_roles),
+      'name', 'img_url', 'description', 'is_qual'
+    );
+  my (%dude_qual) = please_to_fetching_unordered(
+    sprintf (qq(select role_name, is_qualified, expires, expiration_date, instructor, notes from quals where handle='%s' and is_qualified=TRUE), $handle),
+        'role_name', 'is_qualified', 'expires', 'expiration_date', 'instructor', 'notes'
+        );
+  print qq(<h2>Club Qualifications Earned:</h2>\n);
+  for my $is_qualified (sort %dude_qual) {
+    next if $quals{$is_qualified}{'img_url'} eq '';
+    printf (qq(<img src="/INCLUDES/Qual-Icons/%s" alt="%s" width="50" height="50" onmouseover="Tip('%s')" onmouseout="UnTip('')">\n),
+        $quals{$is_qualified}{'img_url'},
+        $quals{$is_qualified}{'description'},
+        $quals{$is_qualified}{'description'},
+        );
+      }
+  }
+
+sub show_navigation {
+  my $student=shift;
+  print qq(<a href="?">Show Instruction Record</a> / <a href="/STATS/?pilot=$student" target="_logbook">Show Flight Log</a> / <a href="?student=$student">Show Instruction Grid</a>\n); 
+  }
+
+sub is_user_instructor {
+        # Get information about this user who is logged in
+        # see what kind of reports he/she can view.
+        # Are you an instructor? If so you can see anything
+        # Are you a student? Then you can only see reports about you...
+        # ...You can also only see reports that are safe for your virgin
+        # eyes to view. (which the instructor determined).
+
+  my $user = shift;
+  my $answer;
+  my $get_info = $dbh->prepare(qq(select handle from members where handle = '$user' and instructor='true' and rating='CFIG'));
+  $get_info->execute();
+  while (my $ans = $get_info->fetchrow_hashref) {
+    $answer = $ans->{'handle'};
+    }
+  $answer;
   }
 
 __END__
