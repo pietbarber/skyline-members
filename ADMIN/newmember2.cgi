@@ -504,7 +504,67 @@ EOM
   else {
     $error[0] = "Unable to insert information into database. Tell the webmaster. Show him this: <br>\n".
 	"<pre>insert into members values (" . ultra_join() . ")</pre>";
+    include ("footer.scrap");
+    exit;
     }
+
+  $aliases = $dbh->prepare(sprintf qq(insert into aliases values ('%s', '%s %s')),
+	$q->param('handle'),
+	$q->param('firstname'),
+	$q->param('lastname')
+	);
+  $aliases->execute();
+
+  if ($q->param('middleinitial' ne '')) {
+    $aliases = $dbh->prepare(sprintf qq(insert into aliases values ('%s', '%s %s %s')),
+	$q->param('handle'),
+	$q->param('firstname'),
+	$q->param('middleinitial'),
+	$q->param('lastname')
+	);
+    $aliases->execute();
+    }
+
+  if ($q->param('namesuffix' ne '')) {
+    $aliases = $dbh->prepare(sprintf qq(insert into aliases values ('%s', '%s %s %s')),
+	$q->param('handle'),
+	$q->param('firstname'),
+	$q->param('lastname'),
+	$q->param('namesuffix'),
+	);
+    $aliases->execute();
+    }
+
+  if ($q->param('namesuffix') ne '' && $q->param('middleinitial') ne '') {
+    $aliases = $dbh->prepare(sprintf qq(insert into aliases values ('%s', '%s %s %s')),
+	$q->param('handle'),
+	$q->param('firstname'),
+	$q->param('lastname'),
+	$q->param('namesuffix'),
+	);
+    $aliases->execute();
+    }
+
+  if ($q->param('namesuffix') ne '' && $q->param('middleinitial') ne '') {
+    $aliases = $dbh->prepare(sprintf qq(insert into aliases values ('%s', '%s %s %s')),
+	$q->param('handle'),
+	$q->param('firstname'),
+	$q->param('lastname'),
+	$q->param('namesuffix'),
+	);
+    $aliases->execute();
+    }
+
+  if ($q->param('joindate') ne '') {
+    $joindate = $dbh->prepare(sprintf qq(insert into new_contacts values ('%s', '%s')),
+	$q->param('handle'),
+	$q->param('joindate')
+	);
+    $aliases->execute();
+    }
+
+
+
 #  $check_handle->finish;
 #  $dbh->disconnect();
   include ("footer.scrap");
@@ -581,6 +641,9 @@ sub ultra_join {
     }
   $answer;
   }
+
+
+
 
 
 sub mail_welcome_page {
