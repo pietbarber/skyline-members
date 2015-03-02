@@ -197,7 +197,8 @@ if (is_user_instructor($the_instructor)) {
       handjam_comments();
       print hr(); 
       pending_reports($the_instructor);
-      print qq(<a href="?">Return to Main</a>\n);
+      print qq(<a href="?">Return to Main</a><br>\n);
+      print qq(<a href="?comments=on">Add Qualifications or Endorsements for another member</a>\n);
       end_page();
       }
     else {
