@@ -14,27 +14,6 @@ my %admins = fetch_admins();
 #my %admins = ();
 #
 
-#my (%quals) = (
-#	'ASK-Front'	=> {img => 'ASK-Front.jpg', desc => 'ASK-Front Seat PIC'},
-#	'ASK-Back'	=> {img => 'ASK-Back.jpg', desc => 'ASK-Back Seat PIC'},
-#	'Grob-Front'	=> {img => 'Grob-Front.jpg', desc => 'Grob Front Seat PIC'},
-#	'Grob-Back'	=> {img => 'Grob-Back.jpg', desc => 'Grob Back Seat PIC'},
-#	'ASK-Student'	=> {img => 'ASK-Student.jpg', => 'Student Solo ASK-21'},
-#	'Grob-Student'	=> {img => 'Grob-Student', => 'Student Solo Grob 103'},
-#	'Sprite-Student'	=> {img => 'Sprite-Student.jpg', desc => 'Student Solo Sprite'},
-#	'Sprite'	=> {img => 'Sprite.jpg', desc => 'Sprite PIC'},
-#	'TowPilot'	=> {img => 'TowPilot.jpg', desc => 'Tow Pilot'},
-#	'Pawnee'	=> {img => 'Pawnee.jpg', desc => 'Pawnee Tow Pilot'},
-#	'Husky'		=> {img => 'Husky.jpg', desc => 'Husky Tow Pilot'},
-#	'WingRunner'	=> {img => 'Wingrunner.jpg', desc => 'Wing-Runner Qualified'},
-#	'CFI'		=> {img => 'Instructor.jpg', desc => 'Club Flight Instructor'},
-#	'Cirrus'	=> {img => 'Cirrus.jpg', desc => 'Cirrus PIC and Assembly'},
-#	'DutyOfficer'	=> {img => 'DutyOfficer.jpg', desc => 'Duty Officer and Logsheets'},
-#	'ADO'		=> {img => 'ADO.jpg', desc => 'Assistant Duty Officer'},
-#	'SafetyMeeting' => {img => 'SafetyMeeting.jpg', desc => 'Attended Safety Meeting'},
-#	'Orientation' => {img => 'New-Member.jpg', desc => 'Attended New Member Orientation Meeting'},
-#	);
-
 my (%quals) =  please_to_fetching_unordered(
       qq(select name, img_url, description, is_qual from endorsement_roles),
         'name', 'img_url', 'description', 'is_qual'
@@ -180,6 +159,11 @@ sub fetch_quals {
   $get_info->execute(); 
   my $count=0;
   while ( my $row = $get_info->fetchrow_hashref ) {
+    next if user_has_rating($input) && $quals{$row->{'role_name'}}{'description'} =~ /Student/i;
+        # If the dude has a rating, don't allow him to get a student endorsement.
+    next if ! (user_has_rating($input)) && $quals{$row->{'role_name'}}{'description'} =~ /PIC/i;
+        # If the dude is a student, don't allow Quals to include PIC.
+
     $answer .= sprintf (qq(<img src="/INCLUDES/Qual-Icons/%s" alt="%s" width="70" height="70" onmouseover="Tip('%s')" onmouseout="UnTip('')">&nbsp), 
 	$quals{$row->{'role_name'}}{'img_url'}, 
 	$quals{$row->{'role_name'}}{'description'},
@@ -191,6 +175,27 @@ sub fetch_quals {
     }
   $answer;
   }
+
+sub user_has_rating {
+        # This is a quick check to the db to see if the user
+        # in question has a rating or not.
+  my ($user) = shift;
+  my ($answer) = 1;
+  my ($ans);
+  my ($sql) = sprintf <<EOM, $user;
+select rating from members where handle='%s';
+EOM
+  my ($ans);
+  my $get_info = $dbh->prepare($sql);
+  $get_info->execute();
+
+  while ($ans = $get_info->fetchrow_hashref) {
+    if ($ans->{'rating'} eq 'S' || $ans->{'rating'} eq 'N/A') {
+      $answer = 0;
+      }
+    }
+  $answer;
+  }  
 
 sub fetch_admins {
         # Fetch an assoc.array of people in the access table
