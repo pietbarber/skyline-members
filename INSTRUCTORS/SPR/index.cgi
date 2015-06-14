@@ -728,10 +728,20 @@ sub please_to_inserting {
 
   elsif ($errornum == 7) {
     print p(qq(Duplicate: This report was already inserted by this instructor for this student on this date.)); 
+    gunk_bomb($input,$errornum,$error);
     print pre($input); 
     } 
  
   else {
+    gunk_bomb($input,$errornum,$error);
+    }
+  $result;
+  }
+
+sub gunk_bomb {
+    my ($input) = shift; 
+    my ($errornum) = shift; 
+    my ($error) = shift; 
     open (GUNK, ">> /var/www/members/sql/sql-$$-gunk.sql");
     print GUNK "----------------------------\n";
     print GUNK `date`  . "\n";
@@ -751,9 +761,8 @@ sub please_to_inserting {
     abort(qq(Ka-blooey!
     Your report didn't go through. Error String was [$errornum][$error] Please e-mail the following gunk to Piet Barber:<br>
 <pre>$input</pre>)); 
-    }
-  $result;
   }
+
 
 sub verbose_output {
     print "<pre>";
@@ -1561,8 +1570,8 @@ sub fetch_flight_info {
 	instructor days_ago glider)) {
       $answer{$field}=$ans->{$field};
       }
-    $answer{'release_altitude'}='Ground'; 
-    $answer{'glider'}='Ground'; 
+    $answer{'release_altitude'}='-'; 
+    $answer{'glider'}='-'; 
     $biganswer{sprintf("%s:%9.9d", 
 	$ans->{'flight_date'},
 	$ans->{'ground_tracking_id'}
@@ -2211,8 +2220,8 @@ sub show_current_syllabus {
   close OUTFILE; 
   print <<EOM;
 <table border="0" width="50%">  
-<tr align="center"><td bgcolor="#888888" colspan="7"><font color="#FFFFFF">Key:</font></td></tr>
-<tr><td colspan="7">
+<tr align="center"><td bgcolor="#888888" colspan="8"><font color="#FFFFFF">Key:</font></td></tr>
+<tr><td colspan="8">
 <table border="0" width = "100%"> 
 <tr>
   <td align="right"><img src="/icons/blobs/blob0.png"></td><td>Not Covered</td>
@@ -2226,9 +2235,10 @@ sub show_current_syllabus {
 </table>
 </td>
 </tr>
-
-<td align="center" colspan="7" bgcolor="#888888"><font color="#FFFFFF">Backgrounds</font></td></tr>
-<td bgcolor="#AAAADD" width="20" height="20">&nbsp;</td><td>Max score > 20 flights prior</td><td >&nbsp;</td>
+<td align="center" colspan="8" bgcolor="#888888"><font color="#FFFFFF">Backgrounds</font></td></tr>
+<tr>
+<td bgcolor="#AAAADD" width="20" height="20">&nbsp;</td><td>Max score,<br> &gt; 20 flights prior</td>
+<td bgcolor="#E8E8F8" width="20" height="20">&nbsp;</td><td>Ground or<br>Simulator Training</td>
 <td bgcolor="#AADDAA" width="20" height="20">&nbsp;</td><td>Maximum Attained</td>
 EOM
 
@@ -2236,7 +2246,7 @@ EOM
     printf (qq(
 <td bgcolor="#DDDD88" width="20" height="20"></td><td>Please Enter Information</td> <td >&nbsp;</td></tr>
 <script>counterz['s-default-0']=1;</script>
-<td align="center" colspan=7 bgcolor="#888888"><font color="#FFFFFF">Preferences / Actions</font></td></tr>
+<td align="center" colspan=8 bgcolor="#888888"><font color="#FFFFFF">Preferences / Actions</font></td></tr>
 )); 
 
     if ($#flights == 0 && $flights[0]{'instructor'} eq $the_instructor) {
@@ -2290,8 +2300,8 @@ EOM
 		)
 	);
 
-    print qq(<td align="center" colspan=7 bgcolor="#888888"><font color="#FFFFFF">Navigation</font></td></tr>);
-    print qq(<tr><td colspan="7" align="center"><table border="0" cellpadding="3" cellspacing="5"><tr>); 
+    print qq(<td align="center" colspan=8 bgcolor="#888888"><font color="#FFFFFF">Navigation</font></td></tr>);
+    print qq(<tr><td colspan="8" align="center"><table border="0" cellpadding="3" cellspacing="5"><tr>); 
     if (! param('limit')) {
       printf qq(<td><a href="?student=%s&limit=1000">Show all flights</a><br> (if appropriate)</td> ),
 	$user;
@@ -2394,11 +2404,14 @@ EOM
         $flight_count{$flights[$flight_number]->{'flight_date'}}{$flights[$flight_number]->{'instructor'}}++;
         my ($id); 
         $id=$flights[$flight_number]->{'flight_tracking_id'}; 
+        my ($bgcolor); 
         if ($id+0==0) {
           $id=$flights[$flight_number]->{'ground_tracking_id'}; 
+          $bgcolor="#E8E8F8";
           }
-
-        my ($bgcolor)="#FFFFFF";
+        else {
+          $bgcolor="#FFFFFF";
+          }
         my $lesson_ball; 
 
 		# Is the person viewing this form the same instructor for this flight? 
@@ -2444,7 +2457,7 @@ EOM
         if ($flight_number == $#flights) {
           $bgcolor="#AADDAA";
           }
-        if ($flight_number == 0 && $#flights == 21) {
+        elsif ($flight_number == 0 && $#flights == 21) {
           $bgcolor="#AAAADD";
           }
 
