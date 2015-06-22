@@ -26,8 +26,6 @@
 	# To Do List, which is painfully long: 
 	# 13) Make opportunity for return to grid work. 
 	# 14) Make a place for AC 61-65E signoffs to get explicitly recorded. 
-	# 15) make history of flight records nicer to look at
-
 
 
 	# Has been removed from this program for scope issues 
@@ -39,15 +37,14 @@
 	# <s>9) Maybe allow a function to only print flights where there is some sort
 	#    of remark from an instructor. </s>
 
-
-
 	# To be currently in the processes of doing: 
-	# Make the instructor have the ability to add an endorsement for each flying event or 
-	# Ground instruction event. 
-	# Make the instructor have the ability to mark off quals for the membership
-	# (front seat, back seat, solo, etc). 
 
 	# To Do that is Done: 
+	# Make the instructor have the ability to mark off quals for the membership
+	# (front seat, back seat, solo, etc). 
+	# Make the instructor have the ability to add an endorsement for each flying event or 
+	# Ground instruction event. 
+	# 15) make history of flight records nicer to look at
 	# 1) make it so that ground instruction, or mark-offs without
 	#    a specific flight involved can be remarked. (like if dude
 	#    does the written test on a day when he doesn't fly) 
@@ -69,7 +66,8 @@
 use CGI qw(:standard);  # Talk to the CGI stream
 use DBI;                # Allows access to DB functions
 use strict;             # Create extra hoops to jump through
-		# Comment out the less appropriate of these two: 
+
+			# Comment out the less appropriate of these two: 
 my ($DEBUG)=0; 		# Shut yer mouth with yer whinin' 
 #my ($DEBUG)=1; 		# Be verbose with your whining. 
 my ($the_instructor)=$ENV{'REMOTE_USER'}; 	# So we can override occasionally
@@ -637,6 +635,60 @@ sub submit_final_report {
     my ($count); 
     verbose_output() if $DEBUG; 
     my(%flight_info)=%{get_flight_info($flight_no)};
+    if ($flight_info{'flight_date'} !~ /^\d{4}-\d{2}-\d{2}$/) {
+		# Your date isn't a date, and that makes me sad. 
+		# I bet what happened is that the flight_tracking_id 
+		# disappeared from the database in mid-transaction. 
+		# We'll just have to go find the new flight_tracking_id ($flight_no)
+		# And run it through the database again. 
+      my($new_flight_no);
+      my $datefield=param('dd-'. $flight_no);	# Thankfully, we jammed the date for that old flight number into this param
+      if ($datefield =~ /^\d{4}-\d{2}-\d{2}/) {
+		# So long as what we've got in that hand jammed variable above looks like a date...
+		# We should be able to query the database for flights with 
+		# The student + the instructor + that flying day. 
+		# Once we find the new flight_no, we'll assign it to $new_flight_no
+		# and then see if that passes the new test. 
+ 
+        my ($ans) =  please_to_fetching_single(
+		sprintf (qq(select flight_tracking_id from flight_info where instructor='%s' and flight_date='%s' and pilot='%s' order by takeoff_time desc limit 1),
+			$the_instructor,
+			$datefield,
+			param('handle')
+			),
+		'flight_tracking_id'
+		);
+        printf (qq(select flight_tracking_id from flight_info where instructor='%s' and flight_date='%s' and pilot='%s' order by takeoff_time desc limit 1),
+                        $the_instructor,
+                        $datefield,
+                        param('handle')
+                        ) if $DEBUG;
+	print "I think the new flight number will be ->" . $ans . "<-" if $DEBUG; 
+		# Now we'll have to go through all the hidden variables and change the old number to the new number. 
+        if ($ans =~ /^\d+$/) {
+	  for my $param (param){
+            my $new_param=$param;
+            if ($new_param =~ s/^s-(.+)-$flight_no$/s-$1-$ans/ || $new_param =~ s/^$flight_no-text/$ans-text|^dd-$flight_no/) {
+              print "Changing $param to $new_param<br>\n" if $DEBUG; 
+              my ($temp) = param($param); 
+              param($new_param, $temp); 
+              Delete($param); # Remove the old value, I don't want it mucking up my program. 
+              }
+            }
+          }
+		# I suppose You should just resubmit with the new values. 
+        $flight_no=$ans;
+        print h2("New Logsheet Uploaded"); 
+	print p(qq(The system detected that somebody uploaded a new log sheet between the time you pulled up 
+this instruction report to the time you submitted it. This might have changed some of the information about the 
+flight in question.  I've updated the information about the flights you'll be reporting on.  Please review this 
+information and continue with your instruction report. You may have to re-enter any qualifications gained during
+this instruction session. ));
+        Delete('quals');
+        allow_for_instructor_comments('quiet');
+        end_page();
+        } 
+      }
     for my $lesson_number (keys %{$lesson_outcome{$flight_no}}) {
       my ($sql)=sprintf (qq(insert into student_syllabus3 values ('%s', '%s', '%s', '%s', '%s')),
         param('handle'), 
@@ -889,8 +941,8 @@ sub allow_for_instructor_comments {
 	# report for each one of the flight groupings for this student. 
 
 	# Wow, that seems like a tall order, but here we go! 
-
-  start_page("Review Flight Results for " . $handle_to_name{param('handle')}, '', 1);
+  my ($quiet) = shift; 
+  start_page("Review Flight Results for " . $handle_to_name{param('handle')}, '', 1) unless $quiet;
   my ($handle, %flight_tracking_id, %lesson_outcome, 
 	%lesson_fields, %output_names, %completed_for_solo, %completed_for_rating);
   $handle=param('handle'); 
@@ -2202,22 +2254,16 @@ sub show_current_syllabus {
   my (%flight_cols);			# All the information about a flight per lesson number
   my (@flights);			# All the stuff about the flights for this guy.
   my (%syllabus) = gimme_syllabus();	# All the info about the syllabus in general
+  my (%kludge_dd); 			# If the logsheet gets overwritten, the id changes. This sets a 
+					# flight_date for each flight_tracking_id that we find. 
   print mini_javascript();		# Just enough javascript to get the blobs to work
   my ($sql) = gimme_sql($user);		# Give me the SQL for given user
   my $get_info = $dbh->prepare($sql);	# Fetch database for that SQL
   print start_form(-id=>'myform');	# The form is named 'myform' do HTML headers for form
   print hidden('handle', $user);	# we have to secretly include the handle
-  #print h2("$handle_to_name{$user}");	# print out the title at the top of the page with dude's name
   my ($limit)=param('limit');
   $limit ||= 20; 
   @flights=fetch_flight_info($user,$limit); 
-  open (OUTFILE, ">/tmp/outfile1.txt"); 
-  for my $the_flight (@flights) {
-    for my $key (keys %{$the_flight}) {
-      printf OUTFILE "%s => %s\n", $key, $the_flight->{$key}; 
-      } #FIXME
-    }
-  close OUTFILE; 
   print <<EOM;
 <table border="0" width="50%">  
 <tr align="center"><td bgcolor="#888888" colspan="8"><font color="#FFFFFF">Key:</font></td></tr>
@@ -2389,7 +2435,6 @@ EOM
 		$syllabus{$lesson_number}->{'description'},
 		)
 	); 
-	
       for my $flight_number (0..$#flights) {
 		# We pulled in the information for the flights earlier, and stuck them into the 
 		# %flights assoc.array.  It is packed with information, and now we are going 
@@ -2445,6 +2490,7 @@ EOM
 		# And in addition to the clickey lesson ball, the background should be a 
 		# yellow puke color that is represented by dddd88
           $bgcolor="#DDDD88";
+          $kludge_dd{'dd-' . $id}=$flights[$flight_number]->{'flight_date'};
           }
         else {
 	  $lesson_ball=lesson_ball(
@@ -2487,8 +2533,12 @@ EOM
     }
   print '</table>' . "\n";
   if ($submission > 1) {
+    for my $key (sort keys (%kludge_dd)) {
+      print hidden($key, $kludge_dd{$key});
+      }
 	# Somewhere along the way, we have a clickey_lesson ball; 
 	# so we need to have a submit button for the instructor to press. 
+
     print submit(
 	-name=>'submit',
 	-value=>'Proceed',
