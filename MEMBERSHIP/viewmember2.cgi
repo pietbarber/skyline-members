@@ -114,7 +114,7 @@ sub print_output {
 		{href=>"mailto:" . $answers{'email'}}, 
 		$answers{'email'}
 	));
-  t_row("Phone #1", $answers{'phone1'});
+  t_row("Phone #1", tel($answers{'phone1'}));
   t_row("Phone #2", $answers{'phone2'});
   t_row("Mobile", $answers{'cell_phone'});
   t_row("Glider Rating", $ratings{$answers{'rating'}});
@@ -286,6 +286,13 @@ sub please_to_fetching_unordered {
   %answer;
   }
 
+
+sub tel {
+  my $input = shift; 
+  my $answer=$input;
+  $answer=~ s#(.+)#<a href ="tel://$1">$1</a>#;
+  $answer;
+  }
 
 __END__
 
