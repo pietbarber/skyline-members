@@ -115,8 +115,8 @@ sub print_output {
 		$answers{'email'}
 	));
   t_row("Phone #1", tel($answers{'phone1'}));
-  t_row("Phone #2", $answers{'phone2'});
-  t_row("Mobile", $answers{'cell_phone'});
+  t_row("Phone #2", tel($answers{'phone2'}));
+  t_row("Mobile", tel($answers{'cell_phone'}));
   t_row("Glider Rating", $ratings{$answers{'rating'}});
   t_row("Membership Status", $status{$answers{'memberstatus'}});
   t_row("Duties", 
@@ -289,6 +289,7 @@ sub please_to_fetching_unordered {
 
 sub tel {
   my $input = shift; 
+  next if $input =~ /href/;
   my $answer=$input;
   $answer=~ s#(.+)#<a href ="tel://$1">$1</a>#;
   $answer;
@@ -452,11 +453,11 @@ EOM
     }
 
   if ($q->param("cell_phone") =~ /\d/) {
-    $q->param("cell_phone", $q->param("cell_phone") . " <i>(cell)</i> ");
+    $q->param("cell_phone", tel($q->param("cell_phone")) . " <i>(cell)</i> ");
     }
 
-  t_row ("Phone", 		$q->param("phone1") . "<br>" .  
-				$q->param("phone2") . "<br>" .
+  t_row ("Phone", 		tel($q->param("phone1")) . "<br>" .  
+				tel($q->param("phone2")) . "<br>" .
 				$q->param("cell_phone"));
   %rating_labels = (
 	'S'	=>	"Student",
