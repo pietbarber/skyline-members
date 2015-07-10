@@ -247,23 +247,10 @@ EOM
 	  )
 	);
 
-  %member_labels = (
-	'M'	=>	'Standard Member',
-	'F'	=>	"Founding Member",
-	'P'	=> 	'Probationary Member',
-	'S'	=> 	'Service Member',
-	'H'	=>	'Honorary Member',
-	'Q'	=>	'Family Member',
-	'T'	=>	'Transient Member',
-	'I'	=>	'Inactive Member',
-	'E'	=>	'Introductory Member',
-	'N'	=>	'Not a Member'
-	);
-
   t_row ("Membership Status", 
 	$q->popup_menu(
 	  -name => "memberstatus",
-	  -values => ['M','F','P','S','H','Q','T','I', 'N', 'E'],
+	  -values => [keys(%member_labels)],
 	  -labels => \%member_labels
 	  )
 	);
@@ -467,6 +454,7 @@ EOM
   include ("footer.scrap");
   }
 
+
 sub t_row {
   $answer = "<tr>";
   local($count);
@@ -540,6 +528,15 @@ sub read_from_db {
     for (0..$#row) {
       $q->param($structure[$_], $row[$_]);
       }
+    }
+
+  $get_info = $dbh->prepare("select role, role_name from memberstatus"); 
+  $get_info->execute();
+
+
+  while ($ans = $get_info->fetchrow_hashref) {
+    warn "debug: member labels" . $ans->{'role'}, " : " . $ans->{'role_name'} . "\n"; 
+    $member_labels{$ans->{'role'}}=$ans->{'role_name'};
     }
 #  $dbh->disconnect();
   }
