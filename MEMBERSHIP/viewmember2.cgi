@@ -19,18 +19,7 @@ my (%quals) =  please_to_fetching_unordered(
         'name', 'img_url', 'description', 'is_qual'
       );
 
-my (%status) = (
-        'M'     =>      'Standard Member',
-        'F'     =>      "Founding Member",
-        'P'     =>      'Probationary Member',
-        'S'     =>      'Service Member',
-        'H'     =>      'Honorary Member',
-        'Q'     =>      'Family Member',
-        'T'     =>      'Transient Member',
-        'I'     =>      'Inactive Member',
-        'E'     =>      'Introductory Member',
-        'N'     =>      'Not a Member'
-        );
+my (%status) = get_member_labels();
 
 my (%ratings) = (
         'S'     =>      "Student",
@@ -56,6 +45,16 @@ print_output();
 include("footer.scrap");
 exit;
 
+sub get_member_labels {
+  my (%answer);
+  my ($sql) = 'select role, role_name from memberstatus';
+  my $get_info = $dbh->prepare($sql);
+  $get_info->execute();
+  while (my $ans = $get_info->fetchrow_hashref) {
+    $answer{$ans->{'role'}} = $ans->{'role_name'};
+    }
+  %answer;
+  }
 
 sub print_output {
   print h1(sprintf ("View Member for %s %s %s",
