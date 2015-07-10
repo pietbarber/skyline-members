@@ -231,23 +231,14 @@ EOM
 	  )
 	);
 
-  %member_labels = (
-	'P'	=> 	'Probationary Member',
-	'M'	=>	'Standard Member',
-	'F'	=>	"Founding Member",
-	'H'	=>	'Honorary Member',
-	'Q'	=>	'Family Member',
-	'T'	=>	'Transient Member',
-	'I'	=>	'Inactive Member',
-	'E'	=>	'Introductory Member',
-	'N'	=>	'Not a Member'
-	);
+  %member_labels = get_member_labels();
 
   t_row ("Membership Status", 
 	$q->popup_menu(
 	  -name => "memberstatus",
-	  -values => ['P','M','F','H','Q','T','I','N','E'],
-	  -labels => \%member_labels
+	  -values => [keys(%member_labels)],
+	  -labels => \%member_labels,
+	  -default => 'P'
 	  )
 	);
 
@@ -428,17 +419,21 @@ sub include {
   close (INCLUDE);
   }
 
+sub db_connectify {
+  use DBI;
+  $driver="DBI::Pg";
+  $database='skyline';
+  $dbh= DBI->connect("DBI:Pg:dbname=skyline")
+	|| die ("can't connect to DB $!\n");
+  } 
+
 sub insert_into_db {
   $handle = $q->param("firstname");
   $handle =~ s/^([A-Za-z]).+$/$1/;
   $handle .= $q->param("lastname");
   $handle =~ tr/A-Z/a-z/;
   $handle =~ s/\s$//g;
-  use DBI;
-  $driver = "DBI::Pg";
-  $database = 'skyline';
-  $dbh = DBI->connect("DBI:Pg:dbname=skyline")
-	|| die ("Can't connect to database $!\n");
+  db_connectify();
 
   while (!$unique_Handle) {
     $check_handle = 
@@ -571,6 +566,18 @@ EOM
   system ("/home/httpd/bin/pwgen.pl");
   exit;
   };
+
+sub get_member_labels {
+  db_connectify() unless $dbh; 
+  my (%answer);
+  my ($sql) = 'select role, role_name from memberstatus';
+  my $get_info = $dbh->prepare($sql);
+  $get_info->execute();
+  while (my $ans = $get_info->fetchrow_hashref) {
+    $answer{$ans->{'role'}} = $ans->{'role_name'};
+    }
+  %answer;
+  }
 
 sub ultra_join {
   local $answer;
