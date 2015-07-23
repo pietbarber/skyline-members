@@ -405,7 +405,7 @@ EOM
       print "<td><b>Tow Pilot 1</b></td>\n";
       #print "<td><b>Tow Pilot 2</b></td>\n";
       print "<td><b>Instructor</b></td>\n";
-      print "<td><b>Stand-by Inst</b></td>\n";
+      print "<td><b>2nd Inst</b></td>\n";
       print "<td><b>Duty Officer</b></td>\n";
       print "<td><b>Asst. Duty Officer</b></td></tr>\n";
 
@@ -908,7 +908,7 @@ EOM
     print "<td><b>Date</b></td><td><b>Tow Pilot 1</b></td>\n";
     #print "<td><b>Tow Pilot 2</b></td>\n";
     print "<td><b>Instructor</b></td>\n";
-    print "<td><b>Stand-by Inst</b></td>\n";
+    print "<td><b>2nd Inst</b></td>\n";
     print "<td><b>Duty Officer</b></td>\n";
     print "<td><b>Asst. Duty Officer</b></td></tr>\n";
 
