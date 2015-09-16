@@ -189,7 +189,9 @@ sub members_output {
       $jobs .= "A"; 
       }
     if ($ans->{'rating'} eq 'CPL') {
-      $jobs .= "C";
+      #$jobs .= "C";
+      #	# We recently decided that we don't want commercial pilots
+      #	showing up as instructors in the instructor pull down list. 
       }
     my ($firstname);  
     $firstname=$ans->{'firstname'}; 
