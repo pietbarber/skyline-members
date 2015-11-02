@@ -71,7 +71,7 @@ use strict;             # Create extra hoops to jump through
 my ($DEBUG)=0; 		# Shut yer mouth with yer whinin' 
 #my ($DEBUG)=1; 		# Be verbose with your whining. 
 my ($the_instructor)=$ENV{'REMOTE_USER'}; 	# So we can override occasionally
-#my ($the_instructor)='jkellett'; 	# So we can override occasionally
+my ($the_instructor)='jkellett'; 	# So we can override occasionally
 						# and pretend we're an instructor for debugging
 my ($dbh);              # Handle for DB connections
 my %user_permissions;   # assoc.array to store permissions
@@ -143,9 +143,14 @@ if (is_user_instructor($the_instructor)) {
       }
 
     if (param('adding_comment') eq 'on') {
-      start_page("Adding Comments for " . $handle_to_name{param('student')});
+     start_page("Adding Comments for " . $handle_to_name{param('student')});
       print full_javascript();
       show_expired_status(param('student'));
+        # Let's check to see if he has a comment from this instructor,
+        # for this day.  If so, we'll just read in that information, and make it
+        # easier for the instructor to simply update the record, rather than kablooey'ing
+        # all over him for trying to add a comment. 
+      check_for_existing_comments(param('student'), param('datefield'));  
       insertify_just_comments();
       }
     elsif (param('notes') eq 'on') {
@@ -257,6 +262,50 @@ else {
 
 exit;
 
+
+sub check_for_existing_comments {
+	# Do we already have a report from this instructor for this student on thi flight date?
+  my($student) = shift;
+  my($datefield)= shift;
+  my($rightnow) = time;
+  my (%comments) =  please_to_fetching_unordered(
+    sprintf (qq(select handle, report, report_date, lastupdated from instructor_reports2 where handle='%s' and instructor='%s' and report_date='%s'), 
+	$student,
+	$the_instructor,
+	$datefield
+	), 
+      'handle', 'report', 'report_date', 'lastupdated'	
+    );
+  if ($rightnow > ($comments{$student}{'lastupdated'} + (86400 * $max_days_ago))) {
+     print <<EOF;
+<table border=1 bgcolor="#F88888">
+<tr><td>It appears there is already a record from you for this student on this date.<br>
+You may not update a record that is older than $max_days_ago days old. 
+</td></tr>
+</table>
+EOF
+    end_page();
+    }
+  elsif ($rightnow < ($comments{$student}{'lastupdated'} + (86400 * $max_days_ago))) {
+    my $comment_added = scalar localtime $comments{$student}{'lastupdated'};
+    print <<EOF;
+<table border=1 bgcolor="#F88888">
+<tr><td>It appears there is already a record from you for this student on this date.<br>
+You added this comment at $comment_added. <br>
+You may update that record by continuing your report here.
+This will not update any of the SPR grid items. 
+</td></tr>
+</table>
+EOF
+    param('updating_record', 'on');
+    param('lastupdated', $comments{$student}{'lastupdated'});
+    param('just_comment', $comments{$student}{'report'});
+    }
+  else {
+    # No older report found, so we do nothing...
+    }
+  }
+
 sub show_expired_status {
 	# If dude man is expired, show a pink box at the top 
 	# of the report indicating so.  This makes the instructor 
@@ -367,6 +416,8 @@ sub insertify_just_comments {
 	-label => 'Submit Report'
 	);
   print hidden ('comments_added', 'on');
+  print hidden ('updating_record');
+  print hidden ('lastupdated');
   print hidden ('handle', param('student'));
   print hidden ('datefield');
   print end_form();
@@ -541,7 +592,30 @@ sub handjam_comments {
 	# Also, if any qualifications have been tacked on, they'll be added, too. 
 	#
   verbose_output() if $DEBUG; 
-  if (param('just_comment')) {
+  if (param('updating_record') eq 'on' && param('just_comment')) {
+  #if (param('updating_record') eq 'on' && param('just_comment') && param('lastupdated') + (86400*$max_days_ago) < 30) {
+    warn "Attempting to update, rather than insert...";
+    my ($sql) = sprintf (qq(update instructor_reports2 set 
+		lastupdated='%s',
+		report='%s'
+		where
+		handle='%s' and
+		report_date='%s' and
+		instructor='%s' and
+		lastupdated='%s'),
+	time, 
+	escape(param('just_comment')), 
+	param('handle'),
+	param('datefield'),
+	$the_instructor,
+	param('lastupdated')
+	);
+    print "Attempting to submit this here sql; ($sql)\n" if $DEBUG; 
+    if (please_to_inserting($sql)) { 
+      print p("Existing instructor report essay updated with new remarks.\n"); 
+      }
+    }
+  elsif (param('just_comment')) {
     my ($sql) = sprintf (qq(insert into instructor_reports2 values (
 		'%s',	-- handle 
 		'%s',	-- report_date
@@ -599,6 +673,7 @@ sub handjam_comments {
     print "Attempting to insert this SQL: <pre>$sql</pre><br>\n" if $DEBUG;
     please_to_inserting($sql); 
     }
+  print "Handjam section complete";
   }
 
 sub submit_final_report {
