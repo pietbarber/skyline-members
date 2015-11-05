@@ -276,10 +276,10 @@ sub check_for_existing_comments {
 	), 
       'handle', 'report', 'report_date', 'lastupdated'	
     );
-  if ($rightnow > ($comments{$student}{'lastupdated'} + (86400 * $max_days_ago))) {
-     print <<EOF;
+  if ($comments{$student}{'report_date'} eq param('datefield')  && $rightnow > ($comments{$student}{'lastupdated'} + (86400 * $max_days_ago))) {
+     printf <<EOF, param('datefield'), $comments{$student}{'report_date'};
 <table border=1 bgcolor="#F88888">
-<tr><td>It appears there is already a record from you for this student on this date.<br>
+<tr><td>It appears there is already a record from you for this student on this date. (%s)(%s)<br>
 You may not update a record that is older than $max_days_ago days old. 
 </td></tr>
 </table>
@@ -673,7 +673,7 @@ sub handjam_comments {
     print "Attempting to insert this SQL: <pre>$sql</pre><br>\n" if $DEBUG;
     please_to_inserting($sql); 
     }
-  print "Handjam section complete";
+  print "Handjam section complete" if $DEBUG;
   }
 
 sub submit_final_report {
