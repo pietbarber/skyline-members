@@ -25,7 +25,8 @@ my (%airfield_names) = (
 	'Grant County' => 'W99', 
 	'Front Royal' => 'KFRR',
 	'Fairfield' => 'W73',
-	'Burner Field' => 'VG55'
+	'Burner Field' => 'VG55',
+	'New Castle' => 'VA85'
 	); 
 
 #############################
@@ -413,7 +414,7 @@ weekday_list, bio_online, mugshot, public_notes, private_notes, cell_phone, emer
     open (SENDMAIL, "|-") 
 	|| exec ("/usr/sbin/sendmail", "-toi"); 
     print SENDMAIL qq(From: "Skyline Webmaster" <webmaster\@skylinesoaring.org>
-To: "Steve Rockwood" <steve.rockwood\@aerojet.com>
+To: "Steve Rockwood" <steve.rockwood\@comcast.com>
 CC: "Piet Barber" <pb\@pietbarber.com>
 Subject: New Member uploaded
 
@@ -1016,15 +1017,16 @@ sub check_three {
                                 {TowPlaneName}->{value};
   $logsheet{'field'} =       $airfield_names{$input->{LogSheet}->{LogSheet_airport}->
                                 {AirportName}->{value}};
-  if ($logsheet{'field'} =~ /^\[A-Z0-9]{4}$/) { 
+  if ($logsheet{'field'} !~ /^[A-Z0-9]{4}$/) { 
     $logsheet{'field'} = 'KFRR'; 
     } 
 	#  if knucklehead DO didn't include a field name, we'll just assume it's Front Royal. 
 
   $logsheet{'field'} ||= 'KFRR'; 
 
-  if ($logsheet{'operations_date'} !~ /\d{4}-\d{2}-\d{2}/) {
-    error_out(qq(Your Operations Date couldn't be parsed from the logsheet.  Something terrible has happened.  Did you upload me a corrupted Logsheet?  Did the Logsheet not contain a date?  Could you check into it and resubmit?));
+  if ($logsheet{'operations_date'} !~ /^\d{4}-\d{2}-\d{2}$/) {
+    my $a = $logsheet{'operations_date'};
+    error_out(qq(Your Operations Date couldn't be parsed from the logsheet. It should be something like 2016-09-12, but instead, I see "$a" Something terrible has happened.  Did you upload me a corrupted Logsheet?  Did the Logsheet not contain a date?  Could you check into it and resubmit?));
     }
 
   print qq(<td bgcolor="#88FF88">OK</td></tr>\n);
