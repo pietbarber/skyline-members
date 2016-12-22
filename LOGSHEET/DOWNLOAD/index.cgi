@@ -97,7 +97,7 @@ sub gliders_output {
 );
   my $sql = qq(select 
 	glider_name, registration, rental_per_minute, rental_per_flight, number_of_seats, max_time_charged_per_day, owners
-	from logsheet_gliders order by number_of_seats desc);
+	from logsheet_gliders order by number_of_seats desc, glider_name asc);
   my($get_info) = $dbh->prepare($sql); 
   $get_info->execute();
   while (my $ans = $get_info->fetchrow_hashref()) {
