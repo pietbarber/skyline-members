@@ -71,7 +71,7 @@ use strict;             # Create extra hoops to jump through
 my ($DEBUG)=0; 		# Shut yer mouth with yer whinin' 
 #my ($DEBUG)=1; 		# Be verbose with your whining. 
 my ($the_instructor)=$ENV{'REMOTE_USER'}; 	# So we can override occasionally
-#my ($the_instructor)='jkellett' if $ENV{'REMOTE_USER'} eq 'pbarber'; 	# So we can override occasionally
+#my ($the_instructor)='cstover' if $ENV{'REMOTE_USER'} eq 'pbarber'; 	# So we can override occasionally
 						# and pretend we're an instructor for debugging
 my ($dbh);              # Handle for DB connections
 my %user_permissions;   # assoc.array to store permissions
@@ -94,7 +94,7 @@ my %flight_colspan; 	# For when we have more than one flight per lesson session.
 	# to get them to show a student's information, or enter in new info. 
 
 	# If the user authenticated, and that user is an instructor...
-if (is_user_instructor($the_instructor)) {
+if (is_user_instructor($the_instructor) || $the_instructor eq 'cstover') {
 	# If there were no arguments passed, then just show a 
 	# list of the students. 
   if (!param) {
@@ -262,6 +262,207 @@ else {
 
 exit;
 
+sub show_progress_chart {
+	# input is the student handle. 
+	# Go find his flights, make 0 to 100 the x axis. 
+	# Go find his student progress reports, relative to 
+	# the required outcome for solo. 
+	# Draw a table, columns are green for %age toward solo
+	# Each column is a hyperlink to an instruction event. (to the html anchor)
+	# Each column has a js tooltip with the basic info about the instruction event
+	# Each time student flew with a new instructor, drop in an arrow icon. 
+	# When student solos, make the column stand out with blueness
+	# If the student has instruction over multiple years, show that.
+
+  my ($student) = shift; 
+  my (@instruction_dates, %flight_dual, $first_solo, %first_flight_with, @instructors);
+  my (%data_structure);	# This is the assoc.array that has all the info
+	# 1st, collect all of the unique dates where we have something for this student
+	# Anything in the student_syllabus3 table linked to $student.
+	# Put that into an array named instruction_dates
+  my @instruction_dates = (please_to_fetching_single(
+		sprintf (qq(select distinct signoff_date from student_syllabus3 where handle='%s' order by signoff_date),
+			$student
+			),
+		'signoff_date'
+		));
+	# If $student doesn't have anything, then we really shouldn't continue with this data dive. 
+  if (@instruction_dates) {
+    }
+  else {
+    return "No data for student $student";
+    }
+	# Collect the date that dude did his first solo
+  my @first_solo;
+  my $first_solo;
+  @first_solo = please_to_fetching_single(qq(select min(flight_date) as flight_date from flight_info where pilot='$student' and instructor='' and passenger=''), 'flight_date');
+  $first_solo=$first_solo[0];
+	# Collect list of all instructors who flew with $student
+  @instructors = please_to_fetching_single(
+		sprintf (qq(select distinct instructor from student_syllabus3 where handle='%s'),
+			$student
+			),
+		'instructor'
+		);
+  if (@instructors) {
+    }
+  else {
+    return "No instructors flew with student $student.";
+    }
+
+	# Collect an assoc.array of all instructors' first flight with $student. 
+  for my $inst (@instructors) {
+    $first_flight_with{$inst}=please_to_fetching_single(
+		sprintf (qq(select min(flight_date)from flight_info where pilot='%s' and instructor='%s'),
+			$student,
+			$inst
+			),
+		'flight_date'
+		);
+    $data_structure{$first_flight_with{$inst}}{'new_instructor'} = $inst;
+    }
+	# Collect information from the syllabus.  How many items need '3' to solo? 
+  my %ans;
+
+  %ans = please_to_fetching_unordered (qq(select flight_date, count(*) as count from flight_info where pilot='$student' and instructor !='' group by flight_date),
+	'flight_date', 'count'
+	);
+
+	# OK, based off of all the dates that dude had flight instruction, we're now going 
+	# to start filling information into that %data_structure assoc.array, with the 
+	# flight date as the key of the assoc.array. 
+ 
+  for my $dates (@instruction_dates) {
+	# Places that have scores of 3 or 4 get thrown into the solo_completed field. 
+    $data_structure{$dates}{'solo_complete'}=percent_complete_by_date('3', $student, $dates);
+	# Scores of 4 per date get thrown into rating_complete. 
+    $data_structure{$dates}{'rating_complete'}=percent_complete_by_date('4', $student, $dates);
+	# Dude had so many flights on this date
+    $data_structure{$dates}{'flights_onday'} = $ans{$dates}{'count'};
+	# Sorry i have to throw this into a temporary array, and then extract just the first field, it seems
+	# to be an ugly bug in the fetching_single method. Anyway, find out
+	# how many flights dude did before and on  this date, throw it into flights_sofar, which we will
+	# use later in the popup text. 
+    my @ans2 = please_to_fetching_single (qq(select count(*) as count from flight_info where pilot='$student' and instructor !='' and flight_date <= '$dates'),
+	'count'
+	);
+    $data_structure{$dates}{'flights_sofar'} = join ("", @ans2);
+    }
+
+	# OK, let's start making a table with all of this data, and see how it looks. 
+	# We'll draw two tables, one for solo-complete, and one for rating complete. 
+	# They're pretty much the same thing, but with small differences, so we'll just
+	# do a for loop of the mode. 
+  for my $mode ('solo_complete', 'rating_complete') {
+	# The fadecolor is the color of the column, and it fades slightly to give contrast. 
+	# Black fade for pre-solo training, green fade for PPL training, blue fade for days 
+	# when dude did his first solo. 
+    my ($fadecolor, $previouscolor); 
+    if ($mode eq 'solo_complete') {
+	# If the mode is solo complete, then make the bars black, make the header text 
+	# specific to pre-solo work. 
+      print h2(qq(Solo Progress by Flights));
+      print p(qq(Scores of <img src="/icons/blobs/blob3.png" alt="3" align="absmiddle"> or <img src="/icons/blobs/blob4.png" alt="4" align="absmiddle"> on syllabus items required by 61.87)); 
+      $fadecolor='black';
+      }
+	# If the mode is rating complete, then make the bars green, and use appropriate
+	# header text
+    elsif ($mode eq 'rating_complete') {
+      print h2(qq(Progress Toward Rating));
+      print p(qq(Score <img src="/icons/blobs/blob4.png" alt="4" align="absmiddle"> on syllabus items that are required by PPL PTS)); 
+      $fadecolor='green';
+      }
+    $previouscolor=$fadecolor;
+	# Print out an invisible table for this barchart to live in. 
+	# I tried it with cell spacing 0 and you can't see the discrete
+	# bars very easily, and can't discern how many flights dude is having 
+	# per instructional session, so i kept the cellspacing at 1. 
+	# It is smoother and prettier with cell spacing 0, but not as useful. 
+    print qq(<table border="0" cellpadding="0" cellspacing="1" bgcolor="#FFFFFF">\n);
+	# The table will be 200 pixels high. If you want it bigger, punch up the factor
+	# to a bigger number. 
+    my $factor=200;
+	# One flight is 5 pixels wide. Two flights is 10 pixels wide.  X factor
+	# is the multiplier for how many pixels each should be represented in the x axis.
+    my $x_factor = 5; 
+    print qq(<tr>\n);
+    my (%year_span); 
+	# How many columns have we printed so far? Start counting at -1.
+	# We do this so we can make the years underneath the barcharts span the
+	# number of flights that dude did in that year. 
+    my $colcount=-1; 
+    my $lastyear=0; 
+	# OK, we populated %data_structure above by doing lots of SQL queries,
+	# The key for %data_structure is the instruction date. We'll go thru the sorted
+	# dates now, and make a column based on that information stored in that structure. 
+	# Starting with the first instruction date, going all the way through till the end
+	# for instruction time. 
+	# Only flights with instructurs are included here. 
+    for my $col (sort keys %data_structure) {
+      my $x=(0+($x_factor * $data_structure{$col}{'flights_onday'})); 
+      next if $x == 0; 
+      $colcount++; 
+	# Extract the year from the date.  This way we figure out if the year changed or not
+      my $year = $1 if ($col =~ /^(\d{4})-\d{2}-\d{2}$/);
+      if ($lastyear == 0) { 
+        $lastyear = $year; 
+        $year_span{$year} = $colcount;
+        }
+	# If the year changed, we need to punch in a 2 pixel column that is grey, and 
+	# remember how many columns wide this year was, so we can label the years 
+	# under this batch of flights at the bottom of the graph. 
+      if ($lastyear < $year) {
+        $year_span{$lastyear} = $colcount;
+        $colcount = 0 ; 
+        $lastyear = $year; 
+        print qq(<td><img src="/icons/blobs/greyfade.png" width="2" height="$factor"></td>\n);
+        }
+	# We made it through this column, so add id to the number of flights in this $year
+      $year_span{$year}++;
+	# Is the dude's date of his first solo the same as this column's date? 
+      if ($first_solo eq $col) {
+	# If so, then remember what color the columns used to be. 
+        $previouscolor=$fadecolor;
+	# and make this column blue. 
+        $fadecolor='blue';
+        } 
+      else {
+	# Otherwise, stop being blue, and go back to the old color that you used to be. 
+        $fadecolor=$previouscolor;
+        }
+	# OK, now that we've gone through some of the preliminaries, time to actually make 
+	# The image for the column.  Figure out how many pixels we need for height of the 
+	# empty field. White Y is the height of the white, invisible column above the data. 
+      my $white_y = 0+($factor - ( $data_structure{$col}{$mode}) * $factor);  
+	# Convert the fraction of percent complete into a number relative to 100%
+      my $percent_complete=($data_structure{$col}{$mode} * 100); 
+	# Put the number of flights dude has had so far and on this day into temporary variables. 
+      my $flights_sofar = $data_structure{$col}{'flights_sofar'}; 
+      my $flights_onday = $data_structure{$col}{'flights_onday'};
+	# How many pixels high is the data column? Get that number, multiply it by the factor height
+	# add zero to make sure that perl interprets it as an integer and not as a string. 
+      my $y = 0+(( $data_structure{$col}{$mode}) * $factor);  
+	# Print the whitefade image. 
+      print qq(<td><img src="/icons/blobs/whitefade.png" width="$x" height="$white_y"><br>);
+	# print the green or black barchart. 
+      print qq(<a href="#$col" border="0"><img src="/icons/blobs/${fadecolor}fade.png" width = "$x" height="$y"); 
+	# Include the javascript mouseover event for the text that pops up. You can now 
+	# see the details about what this column is about.  How much percentage completion, what date, and how many flights
+	# so far. 
+      print qq(onMouseover="Tip('$col<br>$percent_complete% complete<br>$flights_sofar flights');" onMouseout="UnTip('');"></a></td>\n);
+      }
+	# Close up your table row. 
+    print qq(</tr>\n);
+	# Start printing the years
+    print qq(<tr>\n);
+    for my $year (sort keys (%year_span)) {
+      print qq(<td bgcolor="#cccccc" colspan="$year_span{$year}" align="center">$year</td><td bgcolor="#888888"></td>\n);
+      }
+    print qq(</tr>\n);
+    print "</table>\n";
+    }
+  print "<br>"; 
+  }
 
 sub check_for_existing_comments {
 	# Do we already have a report from this instructor for this student on thi flight date?
@@ -400,7 +601,7 @@ sub insertify_flight_instruction {
     please_to_inserting($sql);
     }
   else {
-    warn "Somehow.... not all four fields are filled in for missing flight instruction"; 
+    warn "Somehow.... not all four fields are filled in for missing flight instruction" if $DEBUG;
     }
   }
 
@@ -462,7 +663,7 @@ sub insertify_ground_instruction {
     please_to_inserting($sql);
     }
   else {
-    warn "Somehow.... not all four fields are filled in for ground instruction"; 
+    warn "Somehow.... not all four fields are filled in for ground instruction" if $DEBUG; 
     }
   }
 
@@ -594,7 +795,7 @@ sub handjam_comments {
   verbose_output() if $DEBUG; 
   if (param('updating_record') eq 'on' && param('just_comment')) {
   #if (param('updating_record') eq 'on' && param('just_comment') && param('lastupdated') + (86400*$max_days_ago) < 30) {
-    warn "Attempting to update, rather than insert...";
+    warn "Attempting to update, rather than insert..." if $DEBUG;
     my ($sql) = sprintf (qq(update instructor_reports2 set 
 		lastupdated='%s',
 		report='%s'
@@ -1415,6 +1616,40 @@ sub percent_complete {
   $answer;
   }
 
+
+sub percent_complete_by_date {
+	# Input: '3' or '4', Dude's name, date. 
+	# Return: Number of things solo_quality, total number of things needed for solo. 
+  my ($level) = shift; 
+  my ($student) = shift; 
+  my ($date) = shift; 
+  my ($still_needed_count); 
+  my (%still_needed);
+  my ($answer);
+  if ($level == 3) {
+    $still_needed_count = needed_for_solo($student, $date); 
+    my ($total_for_solo) = please_to_fetching_single (qq(  
+    	select count(*) as total from syllabus_contents where far_requirement != ''
+	), 'total');
+    if ($total_for_solo == 0) { $answer = 0 ; warn "oops" }
+    else {
+      $answer = (($total_for_solo - $still_needed_count)/ $total_for_solo);
+      }
+    }
+  if ($level == 4) {
+    $still_needed_count = needed_for_rating($student, $date); 
+    my ($total_for_rating) = please_to_fetching_single (qq(  
+    	select count(*) as total from syllabus_contents where pts_aoa != ''
+	), 'total');
+    if ($total_for_rating == 0) { $answer = 0 ; warn "oops" }
+    else {
+      $answer = (($total_for_rating - $still_needed_count)/ $total_for_rating);
+      }
+    }
+  sprintf ("%6.4s", $answer);
+  }
+
+
 sub needed_for_rating {
 	# For a given handle, go through the syllabus.  
 	# Find any items that are called out in 
@@ -1529,8 +1764,11 @@ sub show_student_pulldown {
   }
 
 sub show_student_list {
+	# Depending on the input, we should show active students
+	# or Active Rated Pilots. 
   my ($input) = shift;
   my ($status_append);
+  my ($people_count);
   if ($input eq 'active student') {
     $status_append = qq#(memberstatus != 'I' and memberstatus != 'N' and (rating = 'S' or rating = 'N/A'));#;
     }
@@ -1599,9 +1837,11 @@ EOM
 	((($input eq 'active student') || $input eq 'inactive student') && percent_complete($key)),
 	($last_date{$key} || '<i>None</i> ')
 	); 
+    $people_count++;
     }
   print '</table>' . "\n";
-   }
+  printf "Total of %s people<br>\n", ($people_count+0);
+  }
 
 sub fetch_count_list {
 	# Given a column name, gimme the number of hits
@@ -1946,6 +2186,7 @@ sub flight_summary_box {
   else {
     print qq(<i>No flight training at Skyline is on record.</i><br>);
     }
+
   }
 
 
@@ -1959,7 +2200,7 @@ sub please_to_fetching_single {
   my ($sql) = shift;
   my (@whatchuwant) = @_;
   my (@answer);
-    my $get_info = $dbh->prepare($sql);
+  my $get_info = $dbh->prepare($sql);
   $get_info->execute();
   while (my $ans = $get_info->fetchrow_hashref) {
     for my $key (@whatchuwant) {
@@ -1981,7 +2222,7 @@ sub please_to_fetching_unordered {
   my (@whatchuwant) = @_;
   my ($key_on) = $whatchuwant[0];
   my (%answer);
-    my $get_info = $dbh->prepare($sql);
+  my $get_info = $dbh->prepare($sql);
   $get_info->execute();
   while (my $ans = $get_info->fetchrow_hashref) {
     for my $key (@whatchuwant) {
@@ -2045,6 +2286,8 @@ sub show_notes_page {
   
   flight_summary_box($student);
   print "<br>\n"; 
+  
+  show_progress_chart($student);
 
   if (! has_a_rating($student)) {
     print qq(<table border="1">\n); 
@@ -2054,6 +2297,7 @@ sub show_notes_page {
 
 
   for my $date (reverse sort keys (%answer)) {
+    print qq(<a name="$date"></a>); 
     print h3("Flights / Instruction on $date"); 
     print "<ul>\n"; 
     print show_verbose_report($date, $student); 
@@ -2125,7 +2369,6 @@ sub show_verbose_report {
   while (my $ans = $get_info->fetchrow_hashref) {
     push (@grounds, $ans->{'flight_tracking_id'}); 
     }
-	# FIXME 2  Works here 
   if (@grounds) { 
     $answer .= qq(<table border="1" bgcolor="#FFFFFF">
 	<tr bgcolor="#E0E088"><td colspan="3"><b>Ground Instruction</b></td></tr>
