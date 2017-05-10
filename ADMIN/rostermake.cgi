@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-warn "Beginning program. ";
 ########################################
 
 # To Do:
