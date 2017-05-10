@@ -15,8 +15,9 @@ use DBI;                # Allows access to DB functions
 use strict;             # Create extra hoops to jump through
 			# Comment out the less appropriate of these two: 
 my ($DEBUG)=0; 		# Shut yer mouth with yer whinin' 
-#my ($DEBUG)=1; 		# Be verbose with your whining. 
-						# and pretend we're an instructor for debugging
+my ($DEBUG)=1; 		# Be verbose with your whining. 
+				# and pretend we're an instructor for debugging
+				# and all email goes to piet instead of the original recipients
 my ($dbh);              # Handle for DB connections
 
 connectify();           # Connect to DB
@@ -32,6 +33,7 @@ exit;
 	######################################################
 	# Subroutines! 
 	######################################################
+
 
 
 sub find_new_reports { 
@@ -61,10 +63,6 @@ sub email_student_update {
 
   print "Fetching report for $student...\n" if $DEBUG; 
   my ($html_report) = show_verbose_report($report_date, $student);
-  use HTML::Strip; 
-  my $hs = HTML::Strip->new();
-  my ($text_report) = $hs->parse($html_report); 
-  $hs->eof;
 
   open (SENDMAIL, "|-")
         || exec ('/usr/sbin/sendmail', '-t', '-oi');
@@ -73,35 +71,17 @@ sub email_student_update {
   for (1..24) {
     $random_num .= $allow_chars[int(rand($#allow_chars))];
     }
+
   print SENDMAIL "From: \"Skyline Instructors\" <instructors\@skylinesoaring.org>\n"; 
-  print SENDMAIL "MIME-Version: 1.0\n";
-  print SENDMAIL "X-Accept-Language: en-us, en\n";
-  print SENDMAIL qq(To: \"$student_name\" <$email>\n) unless $DEBUG;
+  print SENDMAIL "To: \"Skyline Instructors\" <instructors\@skylinesoaring.org>\n" unless $DEBUG; 
   print SENDMAIL qq(To: \"Piet Barber\" <piet\@pietbarber.com>\n) if $DEBUG;
   print SENDMAIL qq(CC: \"Piet Barber\" <piet\@pietbarber.com>\n) unless $DEBUG;
-  printf SENDMAIL "Subject: Skyline Instruction Record Updated\n";
-  printf SENDMAIL qq(Content-Type: multipart/alternative;
- boundary="------------$random_num"
-This is a multi-part message in MIME format.
---------------$random_num
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
-Dear $student_name,
-The Skyline Soaring Club Student Progress Report system has detected
-that there are new updates to your training record: 
-
-Flights on $report_date
-$text_report
-
-View your complete instruction record by going to:
-http://members.skylinesoaring.org/STUDENTS/
-------------------------------------------------------------------------
-
---------------$random_num
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
+  printf SENDMAIL "Subject: SPR Updated for $student_name\n";
+  printf SENDMAIL "Accept-Language: en-US\n";
+  printf SENDMAIL "Content-Language: en-US\n";
+  printf SENDMAIL "X-MS-Has-Attach:\n";
+  use MIME::Base64;
+  my $base64_message=encode_base64(qq(
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
@@ -119,8 +99,17 @@ $html_report
 
 <p>View your complete instruction record by going to:
 <a href = "http://members.skylinesoaring.org/STUDENTS/">http://members.skylinesoaring.org/STUDENTS/</a></p>
---------------$random_num--
+  ));
 
+  printf SENDMAIL qq(Content-Type: multipart/alternative; boundary="_000_${random_num}_"
+MIME-Version: 1.0
+
+--_000_${random_num}_
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: base64
+
+$base64_message
+--__000_${random_num}_--
 );
 
   close (SENDMAIL);
@@ -137,10 +126,10 @@ sub email_instructor_update {
 
   print "Fetching report for $student...\n" if $DEBUG; 
   my ($html_report) = show_verbose_report($report_date, $student);
-  use HTML::Strip; 
-  my $hs = HTML::Strip->new();
-  my ($text_report) = $hs->parse($html_report); 
-  $hs->eof;
+  #use HTML::Strip; 
+  #my $hs = HTML::Strip->new();
+  #my ($text_report) = $hs->parse($html_report); 
+  #$hs->eof;
 
   open (SENDMAIL, "|-")
         || exec ('/usr/sbin/sendmail', '-t', '-oi');
@@ -149,34 +138,9 @@ sub email_instructor_update {
   for (1..24) {
     $random_num .= $allow_chars[int(rand($#allow_chars))];
     }
-  print SENDMAIL "From: \"Skyline Instructors\" <instructors\@skylinesoaring.org>\n"; 
-  print SENDMAIL "MIME-Version: 1.0\n";
-  print SENDMAIL "X-Accept-Language: en-us, en\n";
-  print SENDMAIL "To: \"Skyline Instructors\" <instructors\@skylinesoaring.org>\n" unless $DEBUG; 
-  print SENDMAIL qq(To: \"Piet Barber\" <piet\@pietbarber.com>\n) if $DEBUG;
-  print SENDMAIL qq(CC: \"Piet Barber\" <piet\@pietbarber.com>\n) unless $DEBUG;
-  printf SENDMAIL "Subject: SPR Updated for $student_name\n";
-  printf SENDMAIL qq(Content-Type: multipart/alternative;
- boundary="------------$random_num"
-This is a multi-part message in MIME format.
---------------$random_num
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 
-Dear Instructors, 
-$instructor_name has updated the training record for $student_name. 
-
-Flights on $report_date
-$text_report
-
-View your complete instruction record by going to:
-http://members.skylinesoaring.org/STUDENTS/
-------------------------------------------------------------------------
-
---------------$random_num
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
+  use MIME::Base64;
+  my $base64_message=encode_base64(qq(
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
@@ -193,7 +157,26 @@ $html_report
 <p>View this student's complete instruction record:<br>
 <a href = "http://members.skylinesoaring.org/INSTRUCTORS/SPR/?student=$student">Grid</a><br>
 <a href = "http://members.skylinesoaring.org/INSTRUCTORS/SPR/?student=$student&notes=on">Instruction Record</a></p>
---------------$random_num--
+  ));
+
+  print SENDMAIL "From: \"Skyline Instructors\" <instructors\@skylinesoaring.org>\n"; 
+  print SENDMAIL "To: \"Skyline Instructors\" <instructors\@skylinesoaring.org>\n" unless $DEBUG; 
+  print SENDMAIL qq(To: \"Piet Barber\" <piet\@pietbarber.com>\n) if $DEBUG;
+  print SENDMAIL qq(CC: \"Piet Barber\" <piet\@pietbarber.com>\n) unless $DEBUG;
+  printf SENDMAIL "Subject: SPR Updated for $student_name\n";
+  printf SENDMAIL "Accept-Language: en-US\n";
+  printf SENDMAIL "Content-Language: en-US\n";
+  printf SENDMAIL "X-MS-Has-Attach:\n";
+
+  printf SENDMAIL qq(Content-Type: multipart/alternative; boundary="_000_${random_num}_"
+MIME-Version: 1.0
+
+--_000_${random_num}_
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: base64
+
+$base64_message
+--__000_${random_num}_--
 
 );
 
@@ -625,7 +608,7 @@ sub fetch_members {
 
   while ( my $row = $get_info->fetchrow_hashref ) {
     if ($row->{'namesuffix'} =~ /\w/) {
-    $answer{$row->{'handle'}}= sprintf ("%s %s, %s %s",
+      $answer{$row->{'handle'}}= sprintf ("%s %s, %s %s",
 	$row->{'lastname'},
 	$row->{'namesuffix'},
 	$row->{'firstname'},
@@ -633,12 +616,13 @@ sub fetch_members {
 	);
       }
     else {
-    $answer{$row->{'handle'}}= sprintf ("%s, %s %s",
+      $answer{$row->{'handle'}}= sprintf ("%s, %s %s",
 	$row->{'lastname'},
 	$row->{'firstname'},
 	$row->{'middleinitial'},
 	);
       }
+    $answer{$row->{'handle'}} =~ s/\s+/ /g;
     }
   %answer;
   }
@@ -728,7 +712,7 @@ sub fetch_straight_members {
 
   while ( my $row = $get_info->fetchrow_hashref ) {
     if ($row->{'namesuffix'} =~ /\w/) {
-    $answer{$row->{'handle'}}= sprintf ("%s %s %s, %s",
+      $answer{$row->{'handle'}}= sprintf ("%s %s %s, %s",
         $row->{'firstname'},
         $row->{'middleinitial'},
         $row->{'lastname'},
@@ -736,12 +720,13 @@ sub fetch_straight_members {
         );
       }
     else {
-    $answer{$row->{'handle'}}= sprintf ("%s %s %s",
+      $answer{$row->{'handle'}}= sprintf ("%s %s %s",
         $row->{'firstname'},
         $row->{'middleinitial'},
         $row->{'lastname'},
         );
       }
+    $answer{$row->{'handle'}} =~ s/\s+/ /g;
     }
   %answer;
   }
