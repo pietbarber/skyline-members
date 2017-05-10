@@ -6,6 +6,7 @@ warn "Beginning program. ";
 
 # Don't use shitty Berkely DB
 
+# Add "surge tow pilot" field as a tow pilot, to allow for a second guy to help
 
 ########################################
 
@@ -127,7 +128,7 @@ sub get_info {
 
   %ados = fetch_db ('ado');
 
-  dbmopen (%ROSTER, "$dbdir/roster", 0666) || die ("Unable to open \%ROSTER $dbdir/roster $!\n");
+  dbmopen (%ROSTER, "$dbdir/roster2", 0666) || die ("Unable to open \%ROSTER $dbdir/roster2 $!\n");
   %roster = %ROSTER;
   dbmclose (%ROSTER);
   }
@@ -271,7 +272,7 @@ EOM
 	# to say.   Remember, we won't be here unless the 
 	# field 'RosterFuhrer' has something in it. 
 
-    print "<tr><td colspan = 6><font size=+2><b>The RosterMeister Speaks</b></font><br>\n";
+    print "<tr><td colspan = 7><font size=+2><b>The RosterMeister Speaks</b></font><br>\n";
     print "<table border = 0 cellpadding = 0><tr valign = top width = 90%><td valign = top rowspan=2>\n";
     print qq!<img src = "/IMAGES/rf-yap.png" width = 120 height =151></td>\n!;
     print qq!<td height=30><img src = "/IMAGES/rf-line.png" width = 400></td></tr>\n!;
@@ -285,7 +286,7 @@ EOM
     if ($_[0] eq 'preview') {
       print "<tr bgcolor = \"#E0E0E0\" valign = middle>";
       print "<td colspan = 2><h2>RosterMeister Control Panel:</h2></td>\n";
-      printf "<td colspan = 4 align = left>Keep Changes:<br> %s | %s | %s <br>\n".
+      printf "<td colspan = 5 align = left>Keep Changes:<br> %s | %s | %s <br>\n".
 	"Lose Changes:<br> %s | %s</td></tr>",
 	$q->submit(
 		-label => 'Edit',
@@ -343,6 +344,7 @@ EOM
 	# was unforseen until it was almost too late. 
 
   for (sort by_num keys %roster)  {
+    $roster_linecount++;
 	# The key is $_
 	# Find out what the date is for the $_ field. 
     @date = gmtime($_);
@@ -378,6 +380,7 @@ EOM
 	# the same thing as 'unassigned'.
 
     next if ($q->param('towpilot1-'.$_) eq '' &&
+    	$q->param('towpilot2-'.$_) eq '' &&
     	$q->param('instructor-'.$_) eq '' &&
     	$q->param('inst2-'.$_) eq '' &&
 	$q->param('duty-'.$_) eq '' &&
@@ -392,7 +395,7 @@ EOM
 
     if ($date[4] > $last_month) {
       $last_month = $date[4];
-      printf ("<tr><td colspan = 6 bgcolor = \"#444444\">&nbsp;<font ".
+      printf ("<tr><td colspan = 7 bgcolor = \"#444444\">&nbsp;<font ".
 	"size=+2 color = \"#FFFFFF\"><b>%s</b></font></td></tr>\n", 
 		$month[$date[4]]);
 
@@ -402,10 +405,10 @@ EOM
 
       print "<tr align = center>\n";
       print "<td align = right><b>Date</b></td>\n";
-      print "<td><b>Tow Pilot 1</b></td>\n";
-      #print "<td><b>Tow Pilot 2</b></td>\n";
+      print "<td><b>Tow Pilot</b></td>\n";
+      print "<td><b>Surge Tow</b></td>\n";
       print "<td><b>Instructor</b></td>\n";
-      print "<td><b>2nd Inst</b></td>\n";
+      print "<td><b>Surge Inst</b></td>\n";
       print "<td><b>Duty Officer</b></td>\n";
       print "<td><b>Asst. Duty Officer</b></td></tr>\n";
 
@@ -447,7 +450,7 @@ EOM
           $tempval =~ s/>/&gt;/g;
           $q->param('notes-' . $_, $tempval);
           }
-        printf ("</tr>\n<tr><td align = left colspan=5 bgcolor = \"#F0DDDD\">" . 
+        printf ("</tr>\n<tr><td align = left colspan=6 bgcolor = \"#F0DDDD\">" . 
 	  "<b>Notes:</b> %s</td></tr>\n",
 		$q->param('notes-'. $_)
 		);
@@ -462,6 +465,7 @@ EOM
     else {
       @duty_list = ( 
 	$q->param('towpilot1-'.$_), 
+	$q->param('towpilot2-'.$_), 
 	$q->param('instructor-'.$_), 
 	$q->param('inst2-'.$_), 
 	$q->param('duty-'.$_), 
@@ -484,7 +488,7 @@ EOM
 	# each cell. 
       printf ("\t<td align = center>%s</td>\n\t<td align = center>%s</td>".
 	      "\n\t<td align = center>%s</td>\n\t<td align = center>%s</td>\n".
-	      "\n\t<td align = center>%s</td>\n",
+	      "\n\t<td align = center>%s</td>\n\t<td align = center>%s</td>\n",
 		@duty_list
 		);
 
@@ -501,7 +505,7 @@ EOM
           $q->param('notes-' . $_, $tempval);
           }
 
-        printf ("</tr>\n<tr><td align = left colspan=5><b>Notes:</b> %s</td></tr>\n",
+        printf ("</tr>\n<tr><td align = left colspan=6><b>Notes:</b> %s</td></tr>\n",
 		$q->param('notes-'. $_)
 		);
         }
@@ -514,7 +518,7 @@ EOM
 	# Print an empty line for spacing. 
 	# to separate it from the next week of duty. 
 
-    printf "<tr><td colspan = 6>&nbsp;</td></tr>\n"
+    printf "<tr><td colspan = 7>&nbsp;</td></tr>\n"
 	if ($date[6] == 0);
 
 	# Don't bother showing duty days till the end 
@@ -534,7 +538,6 @@ EOM
     last
 	if ($date[4] == 1 &&
 	    $first_month > 10);
-    $roster_linecount++;
     }
 
 	# We're all done printing the information, 
@@ -743,11 +746,11 @@ sub edit_roster {
 
   printf <<EOM, $field;
 <tr align = center>
-  <td colspan = 6><font size=+2><b>The RosterMeister Speaks</b></font></td>
+  <td colspan = 7><font size=+2><b>The RosterMeister Speaks</b></font></td>
 </tr>
 
 <tr>
-  <td colspan = 6> 
+  <td colspan = 7> 
 <p align = left>In this textarea, you should enter
 RosterMeister words of wisdom, complaints, solicitations for duty
 swaps and any pieces of information that you need to send to the membership.
@@ -838,7 +841,6 @@ Membership maintenance tool found elsewhere on this website. </P>
 </p>
 
 </td>
-  </td>
 </tr>
 </table>
 <table border = 1 align = center>
@@ -875,24 +877,27 @@ EOM
     if ($date[4] == ($first_month + 3) &&
         !$rf_message) {
       print "<tr><td colspan = 6 height = 50 bgcolor = \"#F08888\">".
-	"<blink><b>Note:</b></blink> RF, you can edit ".
+	"<b>Note:</b> RF, you can edit ".
 	"stuff for the days ahead, but they won't show up on the ".
 	"roster until next month!</td></tr>\n";
       $rf_message = 1;
+      print "</td></tr>\n";
       }
 
 
 
 	# Print an empty row.  (for spacing)
 
-    print "<tr><td colspan = 6 height = 50>&nbsp;</td></tr>\n";
+    #print "<tr><td colspan = 7 height = 50>&nbsp;</td></tr>\n";
     
 
 	# Print the month, (if at the beginning of a month)
 
     if ($date[4] > $last_month || $roster_linecount==0) {
       $last_month = $date[4];
-      printf ("<tr><td colspan = 6 bgcolor = \"#444444\">&nbsp;<font ".
+      $roster_linecount++;
+
+      printf ("<tr><td colspan = 7 bgcolor = \"#444444\">&nbsp;<font ".
 	"size=+2 color = \"#FFFFFF\"><b>%s</b></font></td></tr>\n", 
 		$month[$date[4]]);
       }
@@ -905,10 +910,10 @@ EOM
 	# this is the column header. 
 
     print "<tr bgcolor = \"#E8E8E8\">\n";
-    print "<td><b>Date</b></td><td><b>Tow Pilot 1</b></td>\n";
-    #print "<td><b>Tow Pilot 2</b></td>\n";
+    print "<td><b>Date</b></td><td><b>Tow Pilot</b></td>\n";
+    print "<td><b>Surge Tow</b></td>\n";
     print "<td><b>Instructor</b></td>\n";
-    print "<td><b>2nd Inst</b></td>\n";
+    print "<td><b>Surge Inst</b></td>\n";
     print "<td><b>Duty Officer</b></td>\n";
     print "<td><b>Asst. Duty Officer</b></td></tr>\n";
 
@@ -941,6 +946,12 @@ EOM
 		),
 
 	$q->popup_menu(
+		-name => 'towpilot2-' .$_,
+		-default => $duty_list[0],
+		-values => ['(Unassigned)', '(Open)', (sort tp_sort (keys %towpilots))]
+		),
+
+	$q->popup_menu(
 		-name => 'instructor-' .$_,
 		-default => $duty_list[2],
 		-values => ['(Unassigned)', '(Open)', (sort inst_sort (keys %instructors))]
@@ -968,7 +979,7 @@ EOM
 	# onto one row in the HTML table. 
     printf ("<td align = center>%s</td><td align = center>%s</td>".
 	      "<td align = center>%s</td><td align = center>%s</td>".
-	      "<td align = center>%s</td>",
+	      "<td align = center>%s</td><td align = center>%s</td>",
 		@pull_list
 		);
 	# End the row. 
@@ -986,10 +997,10 @@ EOM
 	# ability to cancel operations for that day. 
 	# this is done by checkbox. 
 
-    printf ("<tr><td colspan = 5 align = Center> <b>Notes: </b>%s %s", 
+    printf ("<tr><td colspan = 6 align = Center> <b>Notes: </b>%s %s", 
       $q->textfield (
 	-name => 'notes-' . $_,
-	-size => '40'
+	-size => '80'
 	),
       $q->checkbox(
 	-label => (sprintf (' Cancel Ops, %s/%s', $date[4]+1, $date[3])),
@@ -998,25 +1009,20 @@ EOM
         ));
     print "</td></tr>\n";
 
-
 	# print a spacer line if the last one was Sunday.
-    print "<tr><td colspan = 6></tr>\n"
+    print "<tr><td colspan = 7>&nbsp;</td></tr>\n"
 	if ($date[6] == 0);
 
 	# don't bother showing any more than 40
 	# entries.  We can expand on this if we 
 	# want to.
 
-
-
-#    last
-#	if (++$count == 40);
-
+    last if (++$count == 40);
     }
 
 
 	# Another suite of submit buttons. 
-    printf ("<tr align = center><td colspan = 6>%s / %s</td></tr>", 
+    printf ("<tr align = center><td colspan = 7>%s / %s</td></tr>", 
 	$q->submit (
 		-name => 'Preview Page'
 		),
@@ -1051,7 +1057,7 @@ sub write_roster {
 	# This function is documented fully in the
 	# CGI module.
 
-  open (OUTPUT, ">$dbdir/roster-info.database")
+  open (OUTPUT, ">$dbdir/roster-info2.database")
 	|| 
      exception ('Unable to write to the database file');
   $q->save(OUTPUT);
@@ -1076,7 +1082,7 @@ sub exception {
 
 sub read_roster {
   undef $q;
-  open (INPUT, "$dbdir/roster-info.database")
+  open (INPUT, "$dbdir/roster-info2.database")
 	|| die('blammo');
   $q= new  CGI(INPUT);
   close (INPUT);
