@@ -5,7 +5,7 @@ LogSheet ::= {
     year 2017 } ,
   version "8.3" ,
   club "Skyline Soaring" ,
-  airport "Front Royal" ,
+  airport "Burner Field" ,
   towplane "SSC Pawnee" ,
   staff {
     dutyofficer "Gordon Roesler" ,
@@ -281,7 +281,7 @@ LogSheet ::= {
     {
       name "William Burner" ,
       type regular ,
-      glider "Private" ,
+      glider "235" ,
       category free-demo ,
       towplane "SSC Pawnee" ,
       towpilot "Theo ten Haaf" ,
