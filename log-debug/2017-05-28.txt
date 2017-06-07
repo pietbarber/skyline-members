@@ -1,0 +1,630 @@
+LogSheet ::= {
+  date {
+    month may ,
+    day 28 ,
+    year 2017 } ,
+  version "8.3" ,
+  club "Skyline Soaring" ,
+  airport "Front Royal" ,
+  towplane "SSC Pawnee" ,
+  staff {
+    dutyofficer "Gordon Roesler" ,
+    assistant "Reynolds Renshaw" ,
+    instructor "John Noss" ,
+    am-towpilot "Theo ten Haaf" ,
+    pm-towpilot "Steve Wallace" } ,
+  glider-flights {
+    {
+      name "James Perlmutter" ,
+      type regular ,
+      glider "GROB 103" ,
+      category instruction ,
+      towplane "SSC Husky" ,
+      instructor "Piet Barber" ,
+      towpilot "Steve Wallace" ,
+      takeoff {
+        hour 10 ,
+        minute 32 } ,
+      landing {
+        hour 10 ,
+        minute 50 } ,
+      flight-time {
+        hours 0 ,
+        minutes 18 } ,
+      release-altitude 3000 ,
+      flight-cost {
+        dollars 10 ,
+        cents 80 } ,
+      tow-cost {
+        dollars 36 ,
+        cents 0 } ,
+      total-cost {
+        dollars 46 ,
+        cents 80 } } ,
+    {
+      name "Max Fisher" ,
+      type regular ,
+      glider "ASK-21" ,
+      category instruction ,
+      towplane "SSC Pawnee" ,
+      instructor "John Noss" ,
+      towpilot "Theo ten Haaf" ,
+      takeoff {
+        hour 10 ,
+        minute 41 } ,
+      landing {
+        hour 10 ,
+        minute 59 } ,
+      flight-time {
+        hours 0 ,
+        minutes 18 } ,
+      release-altitude 3000 ,
+      flight-cost {
+        dollars 11 ,
+        cents 70 } ,
+      tow-cost {
+        dollars 36 ,
+        cents 0 } ,
+      total-cost {
+        dollars 47 ,
+        cents 70 } } ,
+    {
+      name "Brian Clark" ,
+      type regular ,
+      glider "Cirrus" ,
+      category regular ,
+      towplane "SSC Pawnee" ,
+      towpilot "Theo ten Haaf" ,
+      takeoff {
+        hour 11 ,
+        minute 20 } ,
+      landing {
+        hour 11 ,
+        minute 40 } ,
+      flight-time {
+        hours 0 ,
+        minutes 20 } ,
+      release-altitude 3000 ,
+      flight-cost {
+        dollars 6 ,
+        cents 0 } ,
+      tow-cost {
+        dollars 36 ,
+        cents 0 } ,
+      total-cost {
+        dollars 42 ,
+        cents 0 } } ,
+    {
+      name "Evan Dosik" ,
+      type regular ,
+      glider "SGS 1-36" ,
+      category regular ,
+      towplane "SSC Husky" ,
+      towpilot "Steve Wallace" ,
+      takeoff {
+        hour 11 ,
+        minute 34 } ,
+      landing {
+        hour 11 ,
+        minute 48 } ,
+      flight-time {
+        hours 0 ,
+        minutes 14 } ,
+      release-altitude 3000 ,
+      flight-cost {
+        dollars 3 ,
+        cents 50 } ,
+      tow-cost {
+        dollars 36 ,
+        cents 0 } ,
+      total-cost {
+        dollars 39 ,
+        cents 50 } } ,
+    {
+      name "John Noss" ,
+      type regular ,
+      passenger "Sandy Turney" ,
+      glider "ASK-21" ,
+      category regular ,
+      towpilot "Theo ten Haaf" ,
+      takeoff {
+        hour 12 ,
+        minute 8 } ,
+      landing {
+        hour 12 ,
+        minute 25 } ,
+      flight-time {
+        hours 0 ,
+        minutes 17 } ,
+      release-altitude 2700 ,
+      flight-cost {
+        dollars 11 ,
+        cents 5 } ,
+      tow-cost {
+        dollars 33 ,
+        cents 60 } ,
+      total-cost {
+        dollars 44 ,
+        cents 65 } } ,
+    {
+      name "Gregory Ellis" ,
+      type regular ,
+      glider "GROB 103" ,
+      category regular ,
+      towplane "SSC Husky" ,
+      towpilot "Steve Wallace" ,
+      takeoff {
+        hour 12 ,
+        minute 18 } ,
+      landing {
+        hour 12 ,
+        minute 34 } ,
+      flight-time {
+        hours 0 ,
+        minutes 16 } ,
+      release-altitude 2000 ,
+      flight-cost {
+        dollars 9 ,
+        cents 60 } ,
+      tow-cost {
+        dollars 28 ,
+        cents 0 } ,
+      total-cost {
+        dollars 37 ,
+        cents 60 } } ,
+    {
+      name "Jeffrey Windham" ,
+      type regular ,
+      glider "SGS 1-36" ,
+      category regular ,
+      towplane "SSC Pawnee" ,
+      towpilot "Theo ten Haaf" ,
+      takeoff {
+        hour 12 ,
+        minute 32 } ,
+      landing {
+        hour 12 ,
+        minute 47 } ,
+      flight-time {
+        hours 0 ,
+        minutes 15 } ,
+      release-altitude 2000 ,
+      flight-cost {
+        dollars 3 ,
+        cents 75 } ,
+      tow-cost {
+        dollars 28 ,
+        cents 0 } ,
+      total-cost {
+        dollars 31 ,
+        cents 75 } } ,
+    {
+      name "Michael Bishton" ,
+      type regular ,
+      glider "ASK-21" ,
+      towplane "SSC Husky" ,
+      towpilot "Steve Wallace" ,
+      takeoff {
+        hour 12 ,
+        minute 42 } ,
+      landing {
+        hour 12 ,
+        minute 57 } ,
+      flight-time {
+        hours 0 ,
+        minutes 15 } ,
+      release-altitude 2000 ,
+      flight-cost {
+        dollars 9 ,
+        cents 75 } ,
+      tow-cost {
+        dollars 28 ,
+        cents 0 } ,
+      total-cost {
+        dollars 37 ,
+        cents 75 } } ,
+    {
+      name "Max Fisher" ,
+      type regular ,
+      glider "GROB 103" ,
+      towplane "SSC Pawnee" ,
+      instructor "John Noss" ,
+      towpilot "Theo ten Haaf" ,
+      takeoff {
+        hour 12 ,
+        minute 54 } ,
+      landing {
+        hour 13 ,
+        minute 3 } ,
+      flight-time {
+        hours 0 ,
+        minutes 9 } ,
+      release-altitude 2000 ,
+      flight-cost {
+        dollars 5 ,
+        cents 40 } ,
+      tow-cost {
+        dollars 28 ,
+        cents 0 } ,
+      total-cost {
+        dollars 33 ,
+        cents 40 } } ,
+    {
+      name "Richard Garrity" ,
+      type regular ,
+      glider "SGS 1-36" ,
+      category regular ,
+      towplane "SSC Husky" ,
+      towpilot "Steve Wallace" ,
+      takeoff {
+        hour 13 ,
+        minute 15 } ,
+      landing {
+        hour 13 ,
+        minute 27 } ,
+      flight-time {
+        hours 0 ,
+        minutes 12 } ,
+      release-altitude 2200 ,
+      flight-cost {
+        dollars 3 ,
+        cents 0 } ,
+      tow-cost {
+        dollars 29 ,
+        cents 60 } ,
+      total-cost {
+        dollars 32 ,
+        cents 60 } } ,
+    {
+      name "William Burner" ,
+      type regular ,
+      glider "Private" ,
+      category free-demo ,
+      towplane "SSC Pawnee" ,
+      towpilot "Theo ten Haaf" ,
+      takeoff {
+        hour 13 ,
+        minute 31 } ,
+      landing {
+        hour 13 ,
+        minute 48 } ,
+      flight-time {
+        hours 0 ,
+        minutes 17 } ,
+      release-altitude 1500 ,
+      flight-cost {
+        dollars 0 ,
+        cents 0 } ,
+      tow-cost {
+        dollars 0 ,
+        cents 0 } ,
+      total-cost {
+        dollars 0 ,
+        cents 0 } } ,
+    {
+      name "Craig Bendorf" ,
+      type regular ,
+      glider "ASK-21" ,
+      category instruction ,
+      towplane "SSC Husky" ,
+      instructor "Piet Barber" ,
+      towpilot "Steve Wallace" ,
+      takeoff {
+        hour 13 ,
+        minute 34 } ,
+      landing {
+        hour 13 ,
+        minute 50 } ,
+      flight-time {
+        hours 0 ,
+        minutes 16 } ,
+      release-altitude 2500 ,
+      flight-cost {
+        dollars 10 ,
+        cents 40 } ,
+      tow-cost {
+        dollars 32 ,
+        cents 0 } ,
+      total-cost {
+        dollars 42 ,
+        cents 40 } } ,
+    {
+      name "Erik Van Weezendonk" ,
+      type regular ,
+      passenger "Matthew Van Weezendonk" ,
+      glider "Bergfalke" ,
+      category regular ,
+      towplane "SSC Pawnee" ,
+      towpilot "Theo ten Haaf" ,
+      takeoff {
+        hour 13 ,
+        minute 48 } ,
+      landing {
+        hour 13 ,
+        minute 55 } ,
+      flight-time {
+        hours 0 ,
+        minutes 7 } ,
+      release-altitude 2000 ,
+      flight-cost {
+        dollars 0 ,
+        cents 0 } ,
+      tow-cost {
+        dollars 28 ,
+        cents 0 } ,
+      total-cost {
+        dollars 28 ,
+        cents 0 } } ,
+    {
+      name "Brian Clark" ,
+      type regular ,
+      glider "Cirrus" ,
+      category regular ,
+      towplane "SSC Husky" ,
+      towpilot "Steve Wallace" ,
+      takeoff {
+        hour 14 ,
+        minute 16 } ,
+      landing {
+        hour 14 ,
+        minute 37 } ,
+      flight-time {
+        hours 0 ,
+        minutes 21 } ,
+      release-altitude 3000 ,
+      flight-cost {
+        dollars 6 ,
+        cents 30 } ,
+      tow-cost {
+        dollars 36 ,
+        cents 0 } ,
+      total-cost {
+        dollars 42 ,
+        cents 30 } } ,
+    {
+      name "Max Fisher" ,
+      type regular ,
+      glider "ASK-21" ,
+      category instruction ,
+      towplane "SSC Pawnee" ,
+      instructor "Piet Barber" ,
+      towpilot "Theo ten Haaf" ,
+      takeoff {
+        hour 14 ,
+        minute 22 } ,
+      landing {
+        hour 14 ,
+        minute 39 } ,
+      flight-time {
+        hours 0 ,
+        minutes 17 } ,
+      release-altitude 3000 ,
+      flight-cost {
+        dollars 11 ,
+        cents 5 } ,
+      tow-cost {
+        dollars 36 ,
+        cents 0 } ,
+      total-cost {
+        dollars 47 ,
+        cents 5 } } ,
+    {
+      name "Evan Dosik" ,
+      type regular ,
+      glider "SGS 1-36" ,
+      category regular ,
+      towplane "SSC Husky" ,
+      towpilot "Steve Wallace" ,
+      takeoff {
+        hour 14 ,
+        minute 42 } ,
+      landing {
+        hour 15 ,
+        minute 6 } ,
+      flight-time {
+        hours 0 ,
+        minutes 24 } ,
+      release-altitude 3000 ,
+      flight-cost {
+        dollars 6 ,
+        cents 0 } ,
+      tow-cost {
+        dollars 36 ,
+        cents 0 } ,
+      total-cost {
+        dollars 42 ,
+        cents 0 } } ,
+    {
+      name "William Burner" ,
+      type regular ,
+      passenger "Lori Kaehler" ,
+      glider "Bergfalke" ,
+      category free-demo ,
+      towplane "SSC Pawnee" ,
+      towpilot "Theo ten Haaf" ,
+      takeoff {
+        hour 14 ,
+        minute 46 } ,
+      landing {
+        hour 14 ,
+        minute 50 } ,
+      flight-time {
+        hours 0 ,
+        minutes 4 } ,
+      release-altitude 1000 ,
+      flight-cost {
+        dollars 0 ,
+        cents 0 } ,
+      tow-cost {
+        dollars 0 ,
+        cents 0 } ,
+      total-cost {
+        dollars 0 ,
+        cents 0 } } ,
+    {
+      name "Erik Van Weezendonk" ,
+      type regular ,
+      glider "GROB 103" ,
+      category regular ,
+      towplane "SSC Pawnee" ,
+      towpilot "Theo ten Haaf" ,
+      takeoff {
+        hour 14 ,
+        minute 54 } ,
+      landing {
+        hour 15 ,
+        minute 10 } ,
+      flight-time {
+        hours 0 ,
+        minutes 16 } ,
+      release-altitude 3000 ,
+      flight-cost {
+        dollars 9 ,
+        cents 60 } ,
+      tow-cost {
+        dollars 36 ,
+        cents 0 } ,
+      total-cost {
+        dollars 45 ,
+        cents 60 } } } ,
+  adjustments {
+    {
+      name "Michael Bishton" ,
+      amount {
+        dollars 12 ,
+        cents 25 } ,
+      reason pay-in-advance } ,
+    {
+      name "Richard Garrity" ,
+      amount {
+        dollars 267 ,
+        cents 40 } ,
+      reason pay-in-advance } ,
+    {
+      name "James Perlmutter" ,
+      amount {
+        dollars 3 ,
+        cents 20 } ,
+      reason pay-in-advance } } ,
+  payments {
+    {
+      payer "Craig Bendorf" ,
+      type regular ,
+      charges {
+        dollars 42 ,
+        cents 40 } ,
+      account-payment {
+        dollars 42 ,
+        cents 40 } } ,
+    {
+      payer "Michael Bishton" ,
+      type regular ,
+      charges {
+        dollars 50 ,
+        cents 0 } ,
+      check-payment {
+        dollars 50 ,
+        cents 0 } ,
+      comment "9139" } ,
+    {
+      payer "Brian Clark" ,
+      type regular ,
+      charges {
+        dollars 84 ,
+        cents 30 } ,
+      account-payment {
+        dollars 84 ,
+        cents 30 } } ,
+    {
+      payer "Evan Dosik" ,
+      type regular ,
+      charges {
+        dollars 81 ,
+        cents 50 } ,
+      account-payment {
+        dollars 81 ,
+        cents 50 } } ,
+    {
+      payer "Gregory Ellis" ,
+      type regular ,
+      charges {
+        dollars 37 ,
+        cents 60 } ,
+      check-payment {
+        dollars 37 ,
+        cents 60 } ,
+      comment "4541" } ,
+    {
+      payer "Max Fisher" ,
+      type regular ,
+      charges {
+        dollars 128 ,
+        cents 15 } ,
+      account-payment {
+        dollars 128 ,
+        cents 15 } } ,
+    {
+      payer "Richard Garrity" ,
+      type regular ,
+      charges {
+        dollars 300 ,
+        cents 0 } ,
+      check-payment {
+        dollars 300 ,
+        cents 0 } ,
+      comment "3255" } ,
+    {
+      payer "John Noss" ,
+      type regular ,
+      charges {
+        dollars 44 ,
+        cents 65 } ,
+      account-payment {
+        dollars 44 ,
+        cents 65 } } ,
+    {
+      payer "James Perlmutter" ,
+      type regular ,
+      charges {
+        dollars 50 ,
+        cents 0 } ,
+      check-payment {
+        dollars 50 ,
+        cents 0 } ,
+      comment "1413" } ,
+    {
+      payer "Erik Van Weezendonk" ,
+      type regular ,
+      charges {
+        dollars 73 ,
+        cents 60 } ,
+      account-payment {
+        dollars 73 ,
+        cents 60 } } ,
+    {
+      payer "Jeffrey Windham" ,
+      type regular ,
+      charges {
+        dollars 31 ,
+        cents 75 } ,
+      account-payment {
+        dollars 31 ,
+        cents 75 } } } ,
+  towplane-data {
+    {
+      towplane "SSC Pawnee" ,
+      start-tach "8332.88" ,
+      end-tach "8336.03" ,
+      tach-time "3.15" ,
+      gas-added "47" ,
+      comment "Fuel gage not working. 48.7 gallons were obtained from Casanova
+ by Dick Garrity. 42 went into Pawnee, 6 remain in cans." } ,
+    {
+      towplane "SSC Husky" ,
+      start-tach "99.4" ,
+      end-tach "101.8" ,
+      tach-time "2.40" ,
+      gas-added "31.4" } } ,
+  comment "8 flights were ferry flights to and from Burner Field. Remaining
+ flights were out of Burner." ,
+  passed-validation TRUE }
