@@ -5,7 +5,7 @@ LogSheet ::= {
     year 2017 } ,
   version "8.3" ,
   club "Skyline Soaring" ,
-  airport "Burner Field" ,
+  airport "Front Royal" ,
   towplane "SSC Pawnee" ,
   staff {
     dutyofficer "Gordon Roesler" ,
