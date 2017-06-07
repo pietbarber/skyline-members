@@ -231,7 +231,7 @@ LogSheet ::= {
       glider "GROB 103" ,
       category instruction ,
       towplane "SSC Pawnee" ,
-      instructor "John Noss" ,
+      instructor "Piet Barber" ,
       towpilot "Theo ten Haaf" ,
       takeoff {
         hour 12 ,
