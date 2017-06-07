@@ -5,7 +5,7 @@ LogSheet ::= {
     year 2017 } ,
   version "8.3" ,
   club "Skyline Soaring" ,
-  airport "Front Royal" ,
+  airport "Burner Field" ,
   towplane "SSC Pawnee" ,
   staff {
     dutyofficer "Gordon Roesler" ,
@@ -126,6 +126,7 @@ LogSheet ::= {
       passenger "Sandy Turney" ,
       glider "ASK-21" ,
       category regular ,
+      towplane "SSC Pawnee" ,
       towpilot "Theo ten Haaf" ,
       takeoff {
         hour 12 ,
@@ -202,6 +203,7 @@ LogSheet ::= {
       name "Michael Bishton" ,
       type regular ,
       glider "ASK-21" ,
+      category regular ,
       towplane "SSC Husky" ,
       towpilot "Steve Wallace" ,
       takeoff {
@@ -227,6 +229,7 @@ LogSheet ::= {
       name "Max Fisher" ,
       type regular ,
       glider "GROB 103" ,
+      category instruction ,
       towplane "SSC Pawnee" ,
       instructor "John Noss" ,
       towpilot "Theo ten Haaf" ,
