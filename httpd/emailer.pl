@@ -15,7 +15,7 @@ use DBI;                # Allows access to DB functions
 use strict;             # Create extra hoops to jump through
 			# Comment out the less appropriate of these two: 
 my ($DEBUG)=0; 		# Shut yer mouth with yer whinin' 
-my ($DEBUG)=1; 		# Be verbose with your whining. 
+#my ($DEBUG)=1; 		# Be verbose with your whining. 
 				# and pretend we're an instructor for debugging
 				# and all email goes to piet instead of the original recipients
 my ($dbh);              # Handle for DB connections
@@ -74,22 +74,16 @@ sub email_student_update {
 
   print SENDMAIL "From: \"Skyline Instructors\" <instructors\@skylinesoaring.org>\n"; 
   print SENDMAIL "To: \"Skyline Instructors\" <instructors\@skylinesoaring.org>\n" unless $DEBUG; 
+  print SENDMAIL "To: \"$student_name\" <$email>\n" unless $DEBUG; 
+  print SENDMAIL qq(cc: \"Piet Barber\" <piet\@pietbarber.com>\n) unless $DEBUG;
+  print SENDMAIL qq(bcc: \"Piet Barber\" <pietbarber\@icloud.com>\n) unless $DEBUG;
   print SENDMAIL qq(To: \"Piet Barber\" <piet\@pietbarber.com>\n) if $DEBUG;
-  print SENDMAIL qq(CC: \"Piet Barber\" <piet\@pietbarber.com>\n) unless $DEBUG;
   printf SENDMAIL "Subject: SPR Updated for $student_name\n";
   printf SENDMAIL "Accept-Language: en-US\n";
   printf SENDMAIL "Content-Language: en-US\n";
   printf SENDMAIL "X-MS-Has-Attach:\n";
   use MIME::Base64;
   my $base64_message=encode_base64(qq(
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-  <title>Instruction Report Has Been Updated</title>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-
 <p>Dear $student_name,<br> 
 <u>The Skyline Soaring Club Student Progress Report</u> system has detected
 that there are new updates to your training record: </p>
@@ -126,29 +120,17 @@ sub email_instructor_update {
 
   print "Fetching report for $student...\n" if $DEBUG; 
   my ($html_report) = show_verbose_report($report_date, $student);
-  #use HTML::Strip; 
-  #my $hs = HTML::Strip->new();
-  #my ($text_report) = $hs->parse($html_report); 
-  #$hs->eof;
 
   open (SENDMAIL, "|-")
         || exec ('/usr/sbin/sendmail', '-t', '-oi');
   my ($random_num);
-  my (@allow_chars) = (0..9);
+  my (@allow_chars) = ('A' .. 'F', 0..9);
   for (1..24) {
     $random_num .= $allow_chars[int(rand($#allow_chars))];
     }
 
   use MIME::Base64;
   my $base64_message=encode_base64(qq(
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
-  <title>Instruction Report Has Been Updated</title>
-</head>
-<body bgcolor="#ffffff" text="#000000">
-
 <p>$instructor_name has updated the training record for $student_name.</p>
 
 <h2>Flights on $report_date</h2>
@@ -161,8 +143,9 @@ $html_report
 
   print SENDMAIL "From: \"Skyline Instructors\" <instructors\@skylinesoaring.org>\n"; 
   print SENDMAIL "To: \"Skyline Instructors\" <instructors\@skylinesoaring.org>\n" unless $DEBUG; 
+  print SENDMAIL qq(cc: \"Piet Barber\" <piet\@pietbarber.com>\n) unless $DEBUG;
+  print SENDMAIL qq(bcc: \"Piet Barber\" <pietbarber\@icloud.com>\n) unless $DEBUG;
   print SENDMAIL qq(To: \"Piet Barber\" <piet\@pietbarber.com>\n) if $DEBUG;
-  print SENDMAIL qq(CC: \"Piet Barber\" <piet\@pietbarber.com>\n) unless $DEBUG;
   printf SENDMAIL "Subject: SPR Updated for $student_name\n";
   printf SENDMAIL "Accept-Language: en-US\n";
   printf SENDMAIL "Content-Language: en-US\n";
@@ -182,10 +165,6 @@ $base64_message
 
   close (SENDMAIL);
   }
-
-
-
-
 
 sub connectify {
 	# Just connect to the database. 
