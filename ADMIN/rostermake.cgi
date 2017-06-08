@@ -127,7 +127,7 @@ sub get_info {
 
   %ados = fetch_db ('ado');
 
-  dbmopen (%ROSTER, "$dbdir/roster2", 0666) || die ("Unable to open \%ROSTER $dbdir/roster2 $!\n");
+  dbmopen (%ROSTER, "$dbdir/roster", 0666) || die ("Unable to open \%ROSTER $dbdir/roster $!\n");
   %roster = %ROSTER;
   dbmclose (%ROSTER);
   }
