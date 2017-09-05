@@ -214,6 +214,14 @@ sub show_badge_board {
           delete ($badges_earned{'Gold Distance'}{'badge'});
           }
 
+        if ($badges_earned{'Diamond Badge'}{'badge'}) {
+          delete ($badges_earned{'Diamond Distance'}{'badge'});
+          delete ($badges_earned{'Diamond Altitude'}{'badge'});
+          delete ($badges_earned{'Diamond Goal'}{'badge'});
+          }
+
+
+
         if ($badges{$badges_earned{$badge}{'badge'}}) {
           printf (qq(<td align="center" valign="top"><img src="%s" alt="%s" width="50"><br>%s<br><font size="-1">%s</font>\n), 
 		$badges{$badges_earned{$badge}{'badge'}},
