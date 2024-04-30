@@ -157,7 +157,7 @@ sub show_verbose_logsheet_list {
     print qq(First 50 results are shown. <a href="?unlimited=on">Show all logsheets</a>\n);
     print qq(<br><a href="/LOGSHEET/">Return to Logsheets page</a>\n);
     }
-  print qq(<tr bgcolor="#C8C8C8"><td><b>Date</b></td><td><b>Count</b></td><td><b>Operations</b></tr>); 
+  print qq(<tr bgcolor="#C8C8C8"><td><b>Date</b></td><td><b>Uploads</b></td><td><b>Operations</b></tr>); 
   my ($sql) = qq(select logsheet_date, count(*) as number from logsheet_verbose group by logsheet_date order by logsheet_date desc limit $limit_number);
   my ($get_info) = $dbh->prepare($sql); 
   $get_info->execute();
@@ -181,13 +181,7 @@ sub include {
         # output of subroutine is that file.
   my $file = shift;
   my $answer;
-  my ($dir, $fulldir);
-  use Cwd;
-  $fulldir=getcwd;
-  $dir = 'skyline' if ($fulldir =~ m#/var/www/skyline#);
-  warn ("The pwd is $fulldir\n") if $DEBUG;
-  $dir ||= 'members';
-  open (INCLUDE, "/var/www/$dir/html/INCLUDES/$file") || print "Can't open that file $!";
+  open (INCLUDE, "/var/www/members/INCLUDES/$file") || print "Can't open that file $!";
   while (my $line = <INCLUDE>) {
     $answer .= $line;
     }
