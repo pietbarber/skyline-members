@@ -11,7 +11,7 @@ my ($DEBUG)=1; 		# Be verbose with your whining
 my ($dbh); 
 start_page("Badge Board");
 print p(qq(
-<p>Badges shown here are gathered according to the SSA's master badge database and foreign badges earned.  If you see an issue with the A, B, C, or Bronze badges not listed here that needs correcting, please contact the Skyline <a href="mailto:pbarber\@skylinesoaring.org">Chief Flight Instructor</a> first.   </p>
+<p>Badges shown here are gathered according to the SSA's master badge database and foreign badges earned.  If you see an issue with the A, B, C, or Bronze badges not listed here that needs correcting, please contact the Skyline <a href="mailto:pbarber\@skylinesoaring.org">Webmaster / Instructor</a> first.   </p>
 
 <p>Check out the <a href="http://ssa.org/members/badgesandrecords/USBadges.asp">SSA Website</a> for the official issuance of badges</P>
 
@@ -65,7 +65,7 @@ sub include {
   my $file = shift;
   my $title = shift;
   my $answer;
-  open (INCLUDE, "/var/www/members/html/INCLUDES/$file") || print "Can't open that file $!";
+  open (INCLUDE, "/var/www/members/INCLUDES/$file") || print "Can't open that file $!";
   while (my $line = <INCLUDE>) {
     $answer .= $line;
     }
@@ -176,7 +176,7 @@ sub show_badge_board {
 	);
       }
     elsif (! exists ($members_list{$handle}{'url'})) {
-      printf (qq(<tr><td>%s %s %s %s</td><td>Should have something [<a href="http://ssa.org/members/badgesandrecords/USBadges.asp?badge=1&first=%s&last=%s&issued=0&action=+OK+" target=SSA>Check SSA</a>]</td></tr>\n),
+      printf (qq(<tr><td>%s %s %s %s</td><td>Should have something [<a href="https://members.ssa.org/MyHome.asp?mbr=5361749529&show=blog&id=3105" target=SSA>Check SSA</a>]</td></tr>\n),
 	$active_members{$handle}{'firstname'},
 	$active_members{$handle}{'middleinitial'},
 	$active_members{$handle}{'lastname'},
