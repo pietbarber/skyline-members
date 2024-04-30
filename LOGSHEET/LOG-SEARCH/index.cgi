@@ -181,9 +181,6 @@ sub include {
         # output of subroutine is that file.
   my $file = shift;
   my $answer;
-  my ($dir);
-  use Cwd;
-  $dir ||= 'members';
   open (INCLUDE, "/var/www/members/INCLUDES/$file") || print "Can't open that file $!";
   while (my $line = <INCLUDE>) {
     $answer .= $line;
