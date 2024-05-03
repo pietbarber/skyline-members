@@ -527,7 +527,7 @@ sub show_progress_chart {
         $year_span{$lastyear} = $colcount;
         $colcount = 0 ; 
         $lastyear = $year; 
-        print qq(<td valign="bottom" height="200"><img src="/icons/blobs/greyfade.png" width="2" height="$factor" valign="bottom"></td>);
+        print qq(<td valign="bottom" height="200"><img src="/IMAGES/blobs/greyfade.png" width="2" height="$factor" valign="bottom"></td>);
         }
 	# We made it through this column, so add id to the number of flights in this $year
       $year_span{$year}++;
@@ -556,9 +556,9 @@ sub show_progress_chart {
 	# add zero to make sure that perl interprets it as an integer and not as a string. 
       my $y = sprintf("%d", (0+(( $data_structure{$col}{$mode}) * $factor)));  
 	# Print the whitefade image. 
-      print qq(<td valign="bottom" height="200"><img src="/icons/blobs/whitefade.png" width="$x" height="$white_y" cellpadding="0" valign="bottom"><br>);
+      print qq(<td valign="bottom" height="200"><img src="/IMAGES/blobs/whitefade.png" width="$x" height="$white_y" cellpadding="0" valign="bottom"><br>);
 	# print the green or black barchart. 
-      print qq(<a href="#$col" border="0" cellpadding="0"><img src="/icons/blobs/${fadecolor}fade.png" width = "$x" height="$y" valign="bottom" cellpadding="0" ); 
+      print qq(<a href="#$col" border="0" cellpadding="0"><img src="/IMAGES/blobs/${fadecolor}fade.png" width = "$x" height="$y" valign="bottom" cellpadding="0" ); 
 	# Include the javascript mouseover event for the text that pops up. You can now 
 	# see the details about what this column is about.  How much percentage completion, what date, and how many flights
 	# so far. 
@@ -1226,7 +1226,7 @@ sub include {
   my $file = shift;
   my $title = shift;
   my $answer;
-  open (INCLUDE, "/var/www/members/html/INCLUDES/$file") || print "Can't open that file $!";
+  open (INCLUDE, "/var/www/members/INCLUDES/$file") || print "Can't open that file $!";
   while (my $line = <INCLUDE>) {
     $answer .= $line;
     }
@@ -1477,7 +1477,7 @@ sub allow_for_instructor_comments {
     if (! has_a_rating($handle)) {
       my %still_needs = needed_for_solo($handle,  $flight_information{'flight_date'}, \%completed_for_solo);  
 
-      print qq(<tr><td bgcolor="#cccccc"><i>Needs&nbsp;<img src="/icons/blobs/blob3.png" align="absmiddle">&nbsp;or&nbsp;<img src="/icons/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Solo</i></td><td>);
+      print qq(<tr><td bgcolor="#cccccc"><i>Needs&nbsp;<img src="/IMAGES/blobs/blob3.png" align="absmiddle">&nbsp;or&nbsp;<img src="/IMAGES/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Solo</i></td><td>);
       my ($output_count)=0;
       for my $field (sort keys (%still_needs)) {
 
@@ -1492,7 +1492,7 @@ sub allow_for_instructor_comments {
         print qq(<i>None</i>); 
         }
       my %still_needs = needed_for_rating($handle,  $flight_information{'flight_date'}, \%completed_for_rating);  
-      print qq(<tr><td bgcolor="#cccccc"><i>Needs <img src="/icons/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Rating</i></td><td>);
+      print qq(<tr><td bgcolor="#cccccc"><i>Needs <img src="/IMAGES/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Rating</i></td><td>);
       my ($output_count)=0;
       for my $field (sort keys (%still_needs)) {
         printf (qq(<a href="/TRAINING/Syllabus/%s.shtml" target="_syllabus" onmouseover="Tip('%s')" onmouseout="UnTip('')">%s</a>, ), 
@@ -2584,14 +2584,14 @@ sub show_verbose_report {
     $answer .= qq(<br><table bgcolor="#FFFFFF" border="1"><tr bgcolor="#E0E0E0"><td>Performance Level</td><td>Results</td></tr>\n);
     for my $label (1..$#outcome_labels) {
       if ($lesson_result{$label}) { 
-        $answer .= sprintf(qq(<tr><td><img src="/icons/blobs/blob%d.png" align="absmiddle"> %s</td><td>%s</td></tr>\n), 
+        $answer .= sprintf(qq(<tr><td><img src="/IMAGES/blobs/blob%d.png" align="absmiddle"> %s</td><td>%s</td></tr>\n), 
 	   $label, 
 	   $outcome_labels[$label], 
            lesson_labels(sort(@{$lesson_outcome{$label}})) 
 	   );
         }
       else { 
-        $answer .= sprintf(qq(<tr><td><img src="/icons/blobs/blob%d.png" align="absmiddle"> %s</td><td><i>None</i></td></tr>\n), 
+        $answer .= sprintf(qq(<tr><td><img src="/IMAGES/blobs/blob%d.png" align="absmiddle"> %s</td><td><i>None</i></td></tr>\n), 
 	   $label,
 	   $outcome_labels[$label], 
 	   );
@@ -2646,7 +2646,7 @@ sub dude_still_needs {
   $answer .= sprintf qq(<tr><td bgcolor="#cccccc"><i>Progress Towards Solo:</i></td><td>%s</td></tr>\n), percent_complete($student); 
   $answer .= sprintf qq(<tr><td bgcolor="#cccccc"><i>Progress Towards Rating:</i></td><td>%s</td></tr>\n), rating_percent_complete($student); 
 
-  $answer .= qq(<tr><td bgcolor="#cccccc"><i>Needs&nbsp;<img src="/icons/blobs/blob3.png" align="absmiddle">&nbsp;or&nbsp;<img src="/icons/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Solo</i></td><td>);
+  $answer .= qq(<tr><td bgcolor="#cccccc"><i>Needs&nbsp;<img src="/IMAGES/blobs/blob3.png" align="absmiddle">&nbsp;or&nbsp;<img src="/IMAGES/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Solo</i></td><td>);
   my ($output_count)=0;
 
   for my $field (sort keys (%still_needs)) {
@@ -2669,7 +2669,7 @@ sub dude_still_needs {
     }
   $answer .= qq(</td></tr>), 
   my %still_needs = needed_for_rating($student, $date);  
-  $answer .= qq(<tr><td bgcolor="#cccccc"><i>Needs <img src="/icons/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Rating</i></td><td>);
+  $answer .= qq(<tr><td bgcolor="#cccccc"><i>Needs <img src="/IMAGES/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Rating</i></td><td>);
   my ($output_count)=0;
   for my $field (sort keys (%still_needs)) {
     my ($the_field);
@@ -2765,13 +2765,13 @@ sub show_current_syllabus {
 <tr><td colspan="8">
 <table border="0" width = "100%"> 
 <tr>
-  <td align="right"><img src="/icons/blobs/blob0.png"></td><td>Not Covered</td>
-  <td align="right"><img src="/icons/blobs/blob1.png"></td><td>Demonstrated</td>
-  <td align="right"><img src="/icons/blobs/blob2.png"></td><td>Performed</td>
+  <td align="right"><img src="/IMAGES/blobs/blob0.png"></td><td>Not Covered</td>
+  <td align="right"><img src="/IMAGES/blobs/blob1.png"></td><td>Demonstrated</td>
+  <td align="right"><img src="/IMAGES/blobs/blob2.png"></td><td>Performed</td>
 <tr>
-  <td align="right"><img src="/icons/blobs/blob3.png"></td><td>Solo Proficient</td>
-  <td align="right"><img src="/icons/blobs/blob4.png"></td><td>Rating Proficient</td>
-  <td align="right"><img src="/icons/blobs/blob5.png"></td><td>Critical Issue</td></tr>
+  <td align="right"><img src="/IMAGES/blobs/blob3.png"></td><td>Solo Proficient</td>
+  <td align="right"><img src="/IMAGES/blobs/blob4.png"></td><td>Rating Proficient</td>
+  <td align="right"><img src="/IMAGES/blobs/blob5.png"></td><td>Critical Issue</td></tr>
 </tr>
 </table>
 </td>
@@ -3090,14 +3090,14 @@ sub lesson_ball {
   my ($js_id) = sprintf ("s-%s-%s", $lesson_number, $flightno);
 
   $answer = sprintf (qq(<img border="0" 
-	src="/icons/blobs/blob%s.png", 
+	src="/IMAGES/blobs/blob%s.png", 
 	onmouseover="Tip(levels_description[%s])"
 	onmouseout="UnTip('')">),
 	$blobno,
 	$blobno,
 	);
   my $answer2 = sprintf (qq(<img border="0" 
-	src="/icons/blobs/blob%s.png", 
+	src="/IMAGES/blobs/blob%s.png", 
 	id="%s"
 	onmouseover="Tip(levels_description[%s])"
 	onmouseout="UnTip('')">),
@@ -3130,7 +3130,7 @@ sub clickey_lesson_ball {
 	onmouseover="InitMeTwo('%s'); Tip(levels_description[counterz['%s']])"
 	onmouseout="UnTip('')"
 	onclick=" advance('%s'); Tip(levels_description[counterz['%s']])"
-	src="/icons/blobs/blob%s.png" 
+	src="/IMAGES/blobs/blob%s.png" 
 	id="%s-a" >
 	),
 	$js_id, #initme
