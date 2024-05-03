@@ -1,0 +1,24 @@
+AuthUserFile /var/www/members/.htpasswd-instructors
+AuthName "Skyline Instructors Only"
+AuthType Basic
+IndexOptions	FancyIndexing DescriptionWidth=* SuppressSize SuppressLastModified
+Options Indexes Includes FollowSymLinks
+IndexOrderDefault Descending Date
+
+<Limit GET POST>
+require valid-user
+</Limit>
+
+AddDescription "Repository of Important Instructor Documents" Documents
+AddDescription "Student Progress Reports" SPR
+AddDescription "Free-Form Uploads area" Uploads
+AddDescription "Mailing List Archives" Mail\ Lists
+AddDescription "DPE Notes" DPE-Notes 
+AddDescription "Written Test Bank" TEST
+AddDescription "Edit Lesson Plans of the Training Syllabus" Edit\ Syllabus
+AddDescription "Edit the Training Page on the Public Site" Edit\ Training\ Page
+
+ReadmeName README.shtml
+HeaderName HEADER.shtml
+
+
