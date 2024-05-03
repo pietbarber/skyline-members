@@ -39,7 +39,7 @@ my ($DEBUG) = 0;
 #my ($DEBUG) = 1; 
 #my ($the_instructor) = 'pbarber'; 
 my ($the_instructor) = $ENV{'REMOTE_USER'}; 
-my ($min_questions) = 10;
+my ($min_questions) = 1;
 
 use CGI qw(:standard);
 use DBI;
@@ -124,7 +124,7 @@ sub make_archive_directory {
   my (%handle) = fetch_members (); 
   my ($dude) = $handle{$ENV{'REMOTE_USER'}};
   print HEADER <<EOM;
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML>
 
 <html>
   <head>
@@ -179,7 +179,7 @@ sub generate_pdf_questions {
   #open (EXEC, "-|") || exec ("/home/httpd/bin/wkhtmltopdf-i386", '--enable-smart-shrinking', '-q', '-s', 'letter', $qfilename, $pfilename); 
   open (EXEC, "-|") || exec ("/home/httpd/bin/wkhtmltopdf-amd64", '--enable-smart-shrinking', '-q', '-s', 'letter', $qfilename, $pfilename); 
   close (EXEC); 
-  print qq(<td align="center"> <a href="$pfilename"><img src="/icons/PDF-icon.jpeg" border="0"><br>Download Written Test</td>);
+  print qq(<td align="center"> <a href="$pfilename"><img src="/IMAGES/PDF-icon.jpeg" border="0"><br>Download Written Test</td>);
   }
 
 sub generate_pdf_answers {
@@ -206,7 +206,7 @@ sub generate_pdf_answers {
   select (STDOUT);
   open (EXEC, "-|") || exec ("/home/httpd/bin/wkhtmltopdf-amd64", '--enable-smart-shrinking', '-q', '-s', 'letter', $qfilename, $pfilename); 
   close (EXEC); 
-  print qq(<td align="center"> <a href="$pfilename"><img src="/icons/PDF-icon.jpeg" border="0"><br>Answers and Explanations</td>);
+  print qq(<td align="center"> <a href="$pfilename"><img src="/IMAGES/PDF-icon.jpeg" border="0"><br>Answers and Explanations</td>);
   }
 
 sub generate_pdf_testsheet {
@@ -246,7 +246,7 @@ sub generate_pdf_testsheet {
   select (STDOUT);
   open (EXEC, "-|") || exec ("/home/httpd/bin/wkhtmltopdf-amd64", '--enable-smart-shrinking', '-q', '-s', 'letter', $qfilename, $pfilename); 
   close (EXEC); 
-  print qq(<td align="center"><a href="$pfilename"><img src="/icons/PDF-icon.jpeg" border="0"><br>Test Sheet</td>);
+  print qq(<td align="center"><a href="$pfilename"><img src="/IMAGES/PDF-icon.jpeg" border="0"><br>Test Sheet</td>);
   }
 
 sub generate_pdf_answersheet {
@@ -294,7 +294,7 @@ sub generate_pdf_answersheet {
   select (STDOUT);
   open (EXEC, "-|") || exec ("/home/httpd/bin/wkhtmltopdf-amd64", '--enable-smart-shrinking', '-q', '-s', 'letter', $qfilename, $pfilename); 
   close (EXEC); 
-  print qq(<td align="center"> <a href="$pfilename"><img src="/icons/PDF-icon.jpeg" border="0"><br>Test Sheet Answers</td>);
+  print qq(<td align="center"> <a href="$pfilename"><img src="/IMAGES/PDF-icon.jpeg" border="0"><br>Test Sheet Answers</td>);
   }
 
 sub answers_for {
@@ -312,8 +312,8 @@ sub answers_for {
       $questions{$field}=$row->{'answer'}; 
       } 
     }
-  for my $field qw(a b c d) {
-    if (uc($field) eq $questions{'answer'}) {
+  for my $field (qw(A B C D)) {
+    if ($field eq $questions{'answer'}) {
       push (@output, "X");
       }
     else {
@@ -624,9 +624,8 @@ sub show_question_selection {
 EOM
   print "Sample Test Question Selections:<br> "; 
   print_shortcut_button('ASK-21');
-  print_shortcut_button('Grob-103');
-  print_shortcut_button('Sprite');
-  print_shortcut_button('Cirrus');
+  print_shortcut_button('PW5');
+  print_shortcut_button('Discus');
   print_shortcut_button('Empty');
 
   print h2(qq(Select sections for the test: )); 
@@ -680,9 +679,9 @@ sub print_shortcut_button {
   my ($input) = shift; 
   my (%test_types) = (
 	'ASK-21' => {'G103' => 0, 'S136' => 0, 'Cirrus' =>0, 'ASK21' => 100, 'GF' => 10, 'AMF' => 5, 'FAR' => 5, 'GNDOPS' => 5, 'SSC' => 5, 'ST' => 5, 'Weather' => 4, 'AIM' => 5, 'GFH' => 10},
-	'Sprite' => {'S136' => 100, 'ASK21' => 0, 'G103' => 0, 'Cirrus' =>0, 'GF' => 10, 'AMF' => 5, 'FAR' => 5, 'GNDOPS' => 5, 'SSC' => 5, 'ST' => 5, 'Weather' => 4, 'AIM' => 5, 'GFH' => 10},
-	'Grob-103' => {'ASK21' => 0, 'G103' => 100, 'S136' => 0, 'Cirrus' => 0, 'GF' => 10, 'AMF' => 5, 'FAR' => 5, 'GNDOPS' => 5, 'SSC' => 5, 'ST' => 5, 'Weather' => 4, 'AIM' => 5, 'GFH' => 10},
+	'PW5' => {'PW5' => 100, 'ASK21' => 0, 'G103' => 0, 'Cirrus' =>0, 'GF' => 10, 'AMF' => 5, 'FAR' => 5, 'GNDOPS' => 5, 'SSC' => 5, 'ST' => 5, 'Weather' => 4, 'AIM' => 5, 'GFH' => 10},
 	'Cirrus' => {'Cirrus' => 100, 'ASK21' => 0, 'G103' => 0, 'S136' => 0, 'GF' => 10, 'AMF' => 5, 'FAR' => 5, 'GNDOPS' => 5, 'SSC' => 5, 'ST' => 5, 'Weather' => 4, 'AIM' => 5, 'GFH' => 10},
+	'Discus' => {'Cirrus' => 0, 'ASK21' => 0, 'G103' => 0, 'S136' => 0, 'GF' => 10, 'AMF' => 5, 'FAR' => 5, 'GNDOPS' => 5, 'SSC' => 5, 'ST' => 5, 'Weather' => 4, 'AIM' => 5, 'GFH' => 10, 'Discus' => 100},
 	'Empty' => {},
 	); 
   my ($javascript);
@@ -1059,7 +1058,7 @@ sub include {
   my $file = shift;
   my $title = shift;
   my $answer;
-  open (INCLUDE, "/var/www/members/html/INCLUDES/$file"); 
+  open (INCLUDE, "/var/www/members/INCLUDES/$file"); 
   while (my $line = <INCLUDE>) {
     $answer .= $line;
     }
