@@ -58,6 +58,7 @@ my $javascript=javascript();
 
 if (param('action') eq 'Update') { 
   print	header();
+  print "<!DOCTYPE HTML>\n";
   validate_input(); 
   print join ("\n", 
 	"<html><head><title>Updating Question Database...</title>\n",
@@ -78,6 +79,7 @@ if (param('action') eq 'Update') {
 
 elsif (param('action') eq 'Add a Question') {
   print	header();
+  print "<!DOCTYPE HTML>\n";
   print join ("\n", 
 	"<html><head><title>Add a new Question</title>\n",
 	$javascript,
@@ -91,6 +93,7 @@ elsif (param('action') eq 'Add a Question') {
 
 elsif ((param('action') eq 'Edit' || param('action') eq 'Edit Test Questions') && (param('qnum') =~ /^\d+$/)) {
   print	header();
+  print "<!DOCTYPE HTML>\n";
   print join ("\n", 
 	"<html><head><title>Edit Question " . param('qnum') . "</title>\n",
 	$javascript,
@@ -105,6 +108,7 @@ elsif ((param('action') eq 'Edit' || param('action') eq 'Edit Test Questions') &
 elsif (param ('sections') && param ('action') eq 'Show') {
   print join ("\n",
     header(),
+    "<!DOCTYPE HTML>",
     start_html(-title => "Select From Question Bank"),
     include('left-menu.scrap'),
     start_form(), 
@@ -127,6 +131,7 @@ elsif (param ('sections') && param ('action') eq 'Show') {
 else { 
   print join ("\n",
     header(),
+    "<!DOCTYPE HTML>",
     start_html(-title => "Select From Question Bank"),
     include('left-menu.scrap'),
     h1("Edit our written test"), 
@@ -211,7 +216,7 @@ This is a multi-part message in MIME format.
 Content-Type: text/html; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML>
 <html>
 <head>
   <meta content="text/html;charset=ISO-8859-1" http-equiv="Content-Type">
@@ -756,16 +761,16 @@ sub include {
 sub javascript {
   my $answer=<<EOM;
 <!-- TinyMCE -->
-<script src="//tinymce.cachefly.net/4.0/tinymce.min.js"></script>
+<script src="/INCLUDES/tinymce/js/tinymce/tinymce.min.js"></script>
 <script>
 	tinymce.init({
 		selector: "textarea",
 			plugins: [
-				"advlist autolink lists link image charmap print preview anchor",
-				"searchreplace visualblocks code fullscreen",
-				"insertdatetime media table contextmenu paste"
+			  'advlist', 'autolink', 'link', 'image', 'lists', 'charmap', 'preview', 'anchor', 'pagebreak',
+			  'searchreplace', 'wordcount', 'visualblocks', 'visualchars', 'code', 'fullscreen', 'insertdatetime',
+			  'media', 'table', 'emoticons', 'help'
 			],
-		toolbar: "insertfile undo redo | styleselect | bold italic underline superscript subscript| alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image",
+		toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | forecolor backcolor emoticons',
 		autosave_ask_before_unload: false,
 		relative_urls : false,
         	convert_urls: false,
