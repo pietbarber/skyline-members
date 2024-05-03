@@ -750,7 +750,7 @@ sub include {
   my $file = shift;
   my $title = shift;
   my $answer;
-  open (INCLUDE, "/var/www/members/html/INCLUDES/$file"); 
+  open (INCLUDE, "/var/www/members/INCLUDES/$file"); 
   while (my $line = <INCLUDE>) {
     $answer .= $line;
     }
