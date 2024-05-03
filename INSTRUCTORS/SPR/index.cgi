@@ -94,7 +94,7 @@ my %flight_colspan; 	# For when we have more than one flight per lesson session.
 	# to get them to show a student's information, or enter in new info. 
 
 	# If the user authenticated, and that user is an instructor...
-if (is_user_instructor($the_instructor) || $the_instructor eq 'cstover') {
+if (is_user_instructor($the_instructor) || $the_instructor eq 'evanweezendonk1') {
 	# If there were no arguments passed, then just show a 
 	# list of the students. 
   if (!param) {
@@ -159,6 +159,11 @@ if (is_user_instructor($the_instructor) || $the_instructor eq 'cstover') {
       show_expired_status(param('student'));
       show_notes_page(param('student')); 
       } 
+    elsif (param('areas') eq 'on') {
+      start_page($handle_to_name{param('student')});
+      show_expired_status(param('student'));
+      show_sheet(param('student')); 
+      }
     else {
       start_page($handle_to_name{param('student')});
       show_expired_status(param('student'));
@@ -245,6 +250,7 @@ if (is_user_instructor($the_instructor) || $the_instructor eq 'cstover') {
 
   else {
     start_page("How did you get here?");
+    print qq(<a href="https://www.youtube.com/watch?v=5IsSpAOD6K8&t=51s">Click Here for Additional Details</a><br>\n);
     verbose_output() if $DEBUG;
     end_page();
     }
@@ -262,6 +268,103 @@ else {
 
 exit;
 
+
+sub please_to_fetching_scalar {
+        # Take SQL string as input
+        # send that sql string to db
+        # Get output
+        # throw away anything for first thousand answers, 
+        # only include last answer. 
+  my ($sql) = shift;
+  my (@whatchuwant) = @_;
+  my ($answer);
+    my $get_info = $dbh->prepare($sql);
+  $get_info->execute();
+  while (my $ans = $get_info->fetchrow_hashref) {
+    for my $key (@whatchuwant) {
+      $answer = $ans->{$key};
+      }
+    }
+  $answer;
+  }
+
+
+sub show_sheet {
+	# Shows the Training Affirmation Sheet for the student. 
+	# This is just basically all of the items in the syllabus
+	# and for each field, we'll find the latest signoff for 4
+	# and write the instructor's name and signoff-date.
+  my ($student)=shift; 
+  printf (qq(<a href="?">Return to Main</a> ) . 
+	qq(/ <a href="?student=$student&notes=on">Show Instruction Record</a>) . 
+	qq(/ <a href="/STATS/?pilot=$student">Show Flight Log</a><br>)); 
+
+  print qq(<table border = "1"><tr valign="top">\n);
+  print qq(<tr bgcolor="#444444">
+<td align="right"><font color ="#FFFFFF" size="+1">Lesson</font></td><td align="right"><font color ="#FFFFFF" size="+1">Phase&nbsp;&nbsp;</font></td><td align="right"><font color ="#FFFFFF" size="+1">PTS Area</font></td><td align="right"><font color ="#FFFFFF" size="+1">Instructor Sign-Off and Date</font></td><tr>\n);
+
+  my (%max_signoff) = please_to_fetching_unordered(
+	qq(select number, max(signoff_date) as signoff_date from student_syllabus3 where handle='$student' and mode='4' group by number order by number),
+		'number', 'signoff_date');
+	# Now we have all of the signoffs and dates from instructors where there is a score of 4, stored in %max_signoff. 
+	# We need to go in and populate the instructor handle for each one of those fields. 
+	# If I knew SQL better, I could do some sort of fancy schmancy join select inner outer join thing. 
+	# But I'm not so smart, and do know how to brute force my way around this problem in perl. 
+	#
+  for my $number (keys %max_signoff) {
+    $max_signoff{$number}{'instructor'} = please_to_fetching_scalar(
+	sprintf(qq(select instructor from student_syllabus3 where handle='%s' and number = '%s' and signoff_date = '%s' limit 1),
+		$student, 
+		$max_signoff{$number}{'number'},
+		$max_signoff{$number}{'signoff_date'}
+		), 'instructor'
+	);
+    }
+  my (%syllabus) = gimme_syllabus();	# All the info about the syllabus in general
+  for my $number (sort keys %syllabus) { 
+		# Go through each line of the syllabus, 
+		# and fetch from the database the last instructor to sign off this number with a 4. 
+    next if ($syllabus{$number}{'pts_aoa'} eq '' && $number !~ /^\d$/);
+    if ($number	=~ /^\d$/) {
+	printf (qq(<td bgcolor="#888888" align="right"><font size="+1" color="#FFFFFF">%s</font>&nbsp;</td>\n) . 
+		qq(<td bgcolor="#888888" align="right"><font size="+1" color="#FFFFFF">%s</font>&nbsp;</td>\n) .
+		qq(<td bgcolor="#888888" align="right"><font size="+1" color="#FFFFFF"></font>&nbsp;</td>\n) .
+		qq(<td bgcolor="#888888" align="right"><font size="+1" color="#FFFFFF"></font>&nbsp;</td>\n),
+		$syllabus{$number}{'number'},
+		$syllabus{$number}{'title'},
+		);
+      }
+    else {
+      print qq(<tr>\n); 
+      print qq(<td bgcolor="#D8D8D8" align="right"><font size="+0" color="#000000">$number</font>&nbsp;</td>\n);
+      printf (qq(<td bgcolor="#FFFFFF" align="right"><a href="https://members.skylinesoaring.org/TRAINING/Syllabus/%s.shtml">%s</a>&nbsp;</td>\n),
+	$syllabus{$number}{'number'},
+	$syllabus{$number}{'title'}
+	);
+      printf (qq(<td bgcolor="#D8D8D8" align="right"><font size="-1" color="#000000">%s&nbsp;</font></td>\n),
+	$syllabus{$number}{'pts_aoa'}
+	);
+      if ($max_signoff{$number}{'signoff_date'} ne '') {
+        printf (qq(<td bgcolor="#FFFFFF" align="right"><font size="-1" color="#000000">%s&nbsp;%s&nbsp;</font></td>\n), 
+		$handle_to_name{$max_signoff{$number}{'instructor'}},
+		$max_signoff{$number}{'signoff_date'},
+		);
+        }
+      else {
+        print qq(<td bgcolor="#E8E800" align="right">&nbsp;</td>\n); 
+        }
+      }
+
+    print qq(</tr>\n);
+    }
+
+  
+  print qq(</table><br>\n); 
+  end_page();
+  } 
+
+
+
 sub show_progress_chart {
 	# input is the student handle. 
 	# Go find his flights, make 0 to 100 the x axis. 
@@ -275,6 +378,7 @@ sub show_progress_chart {
 	# If the student has instruction over multiple years, show that.
 
   my ($student) = shift; 
+  my ($director) = shift;
   my (@instruction_dates, %flight_dual, $first_solo, %first_flight_with, @instructors);
   my (%data_structure);	# This is the assoc.array that has all the info
 	# 1st, collect all of the unique dates where we have something for this student
@@ -294,9 +398,10 @@ sub show_progress_chart {
     }
 	# Collect the date that dude did his first solo
   my @first_solo;
-  my $first_solo;
   @first_solo = please_to_fetching_single(qq(select min(flight_date) as flight_date from flight_info where pilot='$student' and instructor='' and passenger=''), 'flight_date');
   $first_solo=$first_solo[0];
+
+
 	# Collect list of all instructors who flew with $student
   @instructors = please_to_fetching_single(
 		sprintf (qq(select distinct instructor from student_syllabus3 where handle='%s'),
@@ -357,20 +462,27 @@ sub show_progress_chart {
 	# The fadecolor is the color of the column, and it fades slightly to give contrast. 
 	# Black fade for pre-solo training, green fade for PPL training, blue fade for days 
 	# when dude did his first solo. 
-    my ($fadecolor, $previouscolor); 
+    my ($previouscolor); 
+    my ($fadecolor);
     if ($mode eq 'solo_complete') {
+      $fadecolor='black';
 	# If the mode is solo complete, then make the bars black, make the header text 
 	# specific to pre-solo work. 
-      print h2(qq(Solo Progress by Flights));
-      print p(qq(Scores of <img src="/icons/blobs/blob3.png" alt="3" align="absmiddle"> or <img src="/icons/blobs/blob4.png" alt="4" align="absmiddle"> on syllabus items required by 61.87)); 
-      $fadecolor='black';
+      if ($director) {
+        print h2(qq($handle_to_name{$student}));
+        flight_summary_box($student);
+        print h3(qq(Solo Progress));
+        $fadecolor='black';
+        }
       }
 	# If the mode is rating complete, then make the bars green, and use appropriate
 	# header text
     elsif ($mode eq 'rating_complete') {
-      print h2(qq(Progress Toward Rating));
-      print p(qq(Score <img src="/icons/blobs/blob4.png" alt="4" align="absmiddle"> on syllabus items that are required by PPL PTS)); 
       $fadecolor='green';
+      if ($director) {
+        print h3(qq(Rating Progress));
+        $fadecolor='green';
+        }
       }
     $previouscolor=$fadecolor;
 	# Print out an invisible table for this barchart to live in. 
@@ -381,11 +493,11 @@ sub show_progress_chart {
     print qq(<table border="0" cellpadding="0" cellspacing="1" bgcolor="#FFFFFF">\n);
 	# The table will be 200 pixels high. If you want it bigger, punch up the factor
 	# to a bigger number. 
-    my $factor=200;
+    my $factor=199;
 	# One flight is 5 pixels wide. Two flights is 10 pixels wide.  X factor
 	# is the multiplier for how many pixels each should be represented in the x axis.
     my $x_factor = 5; 
-    print qq(<tr>\n);
+    print qq(<tr valign="top" height="200">);
     my (%year_span); 
 	# How many columns have we printed so far? Start counting at -1.
 	# We do this so we can make the years underneath the barcharts span the
@@ -399,7 +511,7 @@ sub show_progress_chart {
 	# for instruction time. 
 	# Only flights with instructurs are included here. 
     for my $col (sort keys %data_structure) {
-      my $x=(0+($x_factor * $data_structure{$col}{'flights_onday'})); 
+      my $x=sprintf("%d", (0+($x_factor * $data_structure{$col}{'flights_onday'}))); 
       next if $x == 0; 
       $colcount++; 
 	# Extract the year from the date.  This way we figure out if the year changed or not
@@ -415,17 +527,18 @@ sub show_progress_chart {
         $year_span{$lastyear} = $colcount;
         $colcount = 0 ; 
         $lastyear = $year; 
-        print qq(<td><img src="/icons/blobs/greyfade.png" width="2" height="$factor"></td>\n);
+        print qq(<td valign="bottom" height="200"><img src="/icons/blobs/greyfade.png" width="2" height="$factor" valign="bottom"></td>);
         }
 	# We made it through this column, so add id to the number of flights in this $year
       $year_span{$year}++;
 	# Is the dude's date of his first solo the same as this column's date? 
-      if ($first_solo eq $col) {
+      if ($first_solo eq $col ) {
 	# If so, then remember what color the columns used to be. 
         $previouscolor=$fadecolor;
 	# and make this column blue. 
         $fadecolor='blue';
         } 
+	# Is the dude's date of his first passenger the same as this column's date? 
       else {
 	# Otherwise, stop being blue, and go back to the old color that you used to be. 
         $fadecolor=$previouscolor;
@@ -433,7 +546,7 @@ sub show_progress_chart {
 	# OK, now that we've gone through some of the preliminaries, time to actually make 
 	# The image for the column.  Figure out how many pixels we need for height of the 
 	# empty field. White Y is the height of the white, invisible column above the data. 
-      my $white_y = 0+($factor - ( $data_structure{$col}{$mode}) * $factor);  
+      my $white_y = sprintf("%d", (1+($factor - ( $data_structure{$col}{$mode}) * $factor)));  
 	# Convert the fraction of percent complete into a number relative to 100%
       my $percent_complete=($data_structure{$col}{$mode} * 100); 
 	# Put the number of flights dude has had so far and on this day into temporary variables. 
@@ -441,28 +554,29 @@ sub show_progress_chart {
       my $flights_onday = $data_structure{$col}{'flights_onday'};
 	# How many pixels high is the data column? Get that number, multiply it by the factor height
 	# add zero to make sure that perl interprets it as an integer and not as a string. 
-      my $y = 0+(( $data_structure{$col}{$mode}) * $factor);  
+      my $y = sprintf("%d", (0+(( $data_structure{$col}{$mode}) * $factor)));  
 	# Print the whitefade image. 
-      print qq(<td><img src="/icons/blobs/whitefade.png" width="$x" height="$white_y"><br>);
+      print qq(<td valign="bottom" height="200"><img src="/icons/blobs/whitefade.png" width="$x" height="$white_y" cellpadding="0" valign="bottom"><br>);
 	# print the green or black barchart. 
-      print qq(<a href="#$col" border="0"><img src="/icons/blobs/${fadecolor}fade.png" width = "$x" height="$y"); 
+      print qq(<a href="#$col" border="0" cellpadding="0"><img src="/icons/blobs/${fadecolor}fade.png" width = "$x" height="$y" valign="bottom" cellpadding="0" ); 
 	# Include the javascript mouseover event for the text that pops up. You can now 
 	# see the details about what this column is about.  How much percentage completion, what date, and how many flights
 	# so far. 
-      print qq(onMouseover="Tip('$col<br>$percent_complete% complete<br>$flights_sofar flights');" onMouseout="UnTip('');"></a></td>\n);
+      print qq(onMouseover="Tip('$col<br>$percent_complete% complete<br>$flights_sofar flights');" onMouseout="UnTip('');"></a></td>);
       }
 	# Close up your table row. 
     print qq(</tr>\n);
 	# Start printing the years
-    print qq(<tr>\n);
+    print qq(<tr>);
     for my $year (sort keys (%year_span)) {
-      print qq(<td bgcolor="#cccccc" colspan="$year_span{$year}" align="center">$year</td><td bgcolor="#888888"></td>\n);
+      print qq(<td valign="bottom" bgcolor="#cccccc" colspan="$year_span{$year}" align="center" cellpadding="0">$year</td><td  cellpadding="0" valign="top" bgcolor="#888888"></td>);
       }
     print qq(</tr>\n);
     print "</table>\n";
     }
   print "<br>"; 
   }
+
 
 sub check_for_existing_comments {
 	# Do we already have a report from this instructor for this student on thi flight date?
@@ -954,7 +1068,9 @@ sub submit_final_report {
           }
 		# I suppose You should just resubmit with the new values. 
         $flight_no=$ans;
+        print h1("PLEASE TRY AGAIN"); 
         print h2("New Logsheet Uploaded"); 
+        print p(qq(The logsheet has NOT been submitted));
 	print p(qq(The system detected that somebody uploaded a new log sheet between the time you pulled up 
 this instruction report to the time you submitted it. This might have changed some of the information about the 
 flight in question.  I've updated the information about the flights you'll be reporting on.  Please review this 
@@ -1167,7 +1283,7 @@ sub full_javascript {
   my $answer = mini_javascript();
   $answer.=<<EOM;
 <!-- TinyMCE -->
-<script src="//tinymce.cachefly.net/4.0/tinymce.min.js"></script>
+<script src="/INCLUDES/tinymce/js/tinymce/tinymce.min.js"></script>
 <script>
 	tinymce.init({
 		selector: "textarea",
@@ -1549,7 +1665,7 @@ sub pending_reports {
     print qq(<table border="1"> <tr>
 <td bgcolor="#000000" align="center"><font color="#FFFFFF">Pilot</font></td>
 <td bgcolor="#000000" align="center" colspan="2"><font color="#FFFFFF">Reports</font></td>\n 
-<td bgcolor="#000000" align="center"><font color="#FFFFFF">Solo Progress</font></td>
+<td bgcolor="#000000" align="center"><font color="#FFFFFF">Progress</font></td>
 <td bgcolor="#000000" align="center"><font color="#FFFFFF">Date</font></td>\n
 </tr>\n); 
     for my $pilot (sort by_lastname keys (%flights)) {
@@ -1606,42 +1722,86 @@ sub percent_complete {
 
   my ($done)=sprintf("%d", (1-($still_needed_count/$total_for_solo))*100); 
   my ($yet)=sprintf("%d", ($still_needed_count/$total_for_solo)*100);
-  $answer=sprintf(qq(<table cellspacing="0" border="0" cellpadding="0"><tr><td height="10" width="%d" bgcolor="#44FF44"></td>
+  $answer=sprintf(qq(<table cellspacing="0" border="0" cellpadding="0"><tr><td><tt>S</tt></td><td height="10" width="%d" bgcolor="#44FF44" onmouseover="Tip('Solo: %d%% Complete')" onmouseout="UnTip('')" ></td>
 	<td width="%d" bgcolor="#888888"></td></tr></table>),
 	$done,
-	$yet,
-	$done
+	$done,
+	$yet
 	);
 
   $answer;
   }
 
 
+sub rating_percent_complete {
+	# This shows a cool little graphic showing his progress 
+	# according to how far he needs to go. 
+	# The output will be two img tags of different size
+	# showing his progress according to "needed_for_rating" 
+	# and a percentage number. 
+  my ($input) = shift; 
+  my ($answer); 
+  if (has_a_rating($input)) { 
+    return ('<i> Rated Pilot </i>'); 
+    }
+  my ($still_needed_count); 
+  my (%still_needed) = needed_for_rating($input, today()); 
+  for (sort keys(%still_needed)) {
+    $still_needed_count++;
+    }
+  my ($total_for_rating) = 1;  
+  my $sql = qq(select count(*) as total from syllabus_contents where far_requirement!= '' and pts_aoa != '');
+  my $get_info = $dbh->prepare($sql);
+  $get_info->execute();
+  while (my $ans = $get_info->fetchrow_hashref()) {
+    $total_for_rating=$ans->{'total'};
+    }
+
+  my ($done)=sprintf("%d", (1-($still_needed_count/$total_for_rating))*100); 
+  my ($yet)=sprintf("%d", ($still_needed_count/$total_for_rating)*100);
+  $answer=sprintf(qq(<table cellspacing="0" border="0" cellpadding="0">\n<tr><td><tt>R</tt></td></td><td height="10" width="%d" bgcolor="#44FF44" onmouseover="Tip('Rating: %d%% Complete (%d/%d)')" onmouseout="UnTip('')" ></td>
+	<td width="%d" bgcolor="#888888"></td></tr></table>),
+	$done,
+        $done,
+	($total_for_rating-$still_needed_count),
+	$total_for_rating,
+	$yet
+	);
+
+  $answer;
+  }
+
+
+
 sub percent_complete_by_date {
 	# Input: '3' or '4', Dude's name, date. 
-	# Return: Number of things solo_quality, total number of things needed for solo. 
+	# Return: Number of things rating_quality or solo_quality, divided by the total number of things needed for rating or solo, formatted as a percent. 
   my ($level) = shift; 
   my ($student) = shift; 
   my ($date) = shift; 
-  my ($still_needed_count); 
-  my (%still_needed);
-  my ($answer);
+  my ($answer, $still_needed_count);
   if ($level == 3) {
-    $still_needed_count = needed_for_solo($student, $date); 
+    my (%still_needed) = needed_for_solo($student, $date); 
+    for my $key (sort keys(%still_needed)) {
+      $still_needed_count++ if $still_needed{$key} > 0;
+      }
     my ($total_for_solo) = please_to_fetching_single (qq(  
     	select count(*) as total from syllabus_contents where far_requirement != ''
 	), 'total');
-    if ($total_for_solo == 0) { $answer = 0 ; warn "oops" }
+    if ($total_for_solo == 0) { $answer = 0 }
     else {
       $answer = (($total_for_solo - $still_needed_count)/ $total_for_solo);
       }
     }
   if ($level == 4) {
-    $still_needed_count = needed_for_rating($student, $date); 
+    my (%still_needed) = needed_for_rating($student, $date); 
+    for my $key (sort keys(%still_needed)) {
+      $still_needed_count++ if $still_needed{$key} > 0;
+      }
     my ($total_for_rating) = please_to_fetching_single (qq(  
-    	select count(*) as total from syllabus_contents where pts_aoa != ''
+    	select count(*) as total from syllabus_contents where far_requirement != '' and pts_aoa != ''
 	), 'total');
-    if ($total_for_rating == 0) { $answer = 0 ; warn "oops" }
+    if ($total_for_rating == 0) { $answer = 0 }
     else {
       $answer = (($total_for_rating - $still_needed_count)/ $total_for_rating);
       }
@@ -1670,12 +1830,16 @@ sub needed_for_rating {
   my $sql = qq(select number from syllabus_contents where far_requirement != '' and pts_aoa != ''); 
   my $get_info = $dbh->prepare($sql);
   $get_info->execute();
+	# Here we build up the %required array with things that need to be accomplished
   while (my $ans = $get_info->fetchrow_hashref()) {
     $required{$ans->{'number'}}++; 
     }
   my $sql = qq( select number, mode from student_syllabus3 where handle='$handle' and mode::integer = 4 and signoff_date <= '$date_of');
   my $get_info = $dbh->prepare($sql);
   $get_info->execute();
+	# Now we go through that %required array and delete key-values that are completed at level 4
+	# If we have nothing left, then the dude is ready for the practical test
+	# If we haven't clobbered any values, then he has a long way to go
   while (my $ans = $get_info->fetchrow_hashref()) {
     if ($ans->{'mode'} == 4) {
       delete($required{$ans->{'number'}}); 
@@ -1768,6 +1932,7 @@ sub show_student_list {
 	# or Active Rated Pilots. 
   my ($input) = shift;
   my ($status_append);
+  print mini_javascript();
   my ($people_count);
   if ($input eq 'active student') {
     $status_append = qq#(memberstatus != 'I' and memberstatus != 'N' and (rating = 'S' or rating = 'N/A'));#;
@@ -1787,11 +1952,11 @@ sub show_student_list {
 
   print '<table border = "1" bgcolor = "#FFFFFF">' . "\n";
   my ($progress);
-  $progress = qq(Solo Progress) if ($input eq 'active student' || $input eq 'inactive student'); 
+  $progress = qq(Progress) if ($input eq 'active student' || $input eq 'inactive student'); 
   print <<EOM;
 <tr>
   <td bgcolor="#000000" align="right"><font color="#FFFFFF">Pilot</font></td>
-  <td bgcolor="#000000" colspan="2" align="center"><font color="#FFFFFF">Reports</font></td>
+  <td bgcolor="#000000" colspan="3" align="center"><font color="#FFFFFF">Reports</font></td>
   <td bgcolor="#000000" align="center"><font color="#FFFFFF">$progress</font></td>
   <td bgcolor="#000000"><font color="#FFFFFF">Last Flight</font></td>
 </tr>
@@ -1825,16 +1990,19 @@ EOM
 	);
     printf (qq(
 <tr>
-  <td align="right">%s</a></td>
-  <td><a href="?student=%s">Grid</a></td>
+  <td align="right">%s</td>
+  <td><a href="?student=%s">Grid</td>
+  <td><a href="?areas=on\&student=%s">Areas</td>
   <td><a href="?student=%s&notes=on">Record</a></td>
-  <td>%s</td>
+  <td>%s%s</td>
   <td align="center">%s</td>
 </tr>),
 	$user,
 	$key, 
 	$key, 
+	$key, 
 	((($input eq 'active student') || $input eq 'inactive student') && percent_complete($key)),
+	((($input eq 'active student') || $input eq 'inactive student') && rating_percent_complete($key)),
 	($last_date{$key} || '<i>None</i> ')
 	); 
     $people_count++;
@@ -1989,6 +2157,7 @@ sub show_quals {
 	);
 
   for my $is_qualified (sort %dude_qual) {
+    next if user_has_rating($handle) && $quals{$is_qualified}{'description'} =~ /Student/i;
     next if $quals{$is_qualified}{'img_url'} eq '';
     printf (qq(<img src="/INCLUDES/Qual-Icons/%s" alt="%s" width="50" height="50" onmouseover="Tip('%s')" onmouseout="UnTip('')">\n),
 	$quals{$is_qualified}{'img_url'},
@@ -2047,6 +2216,13 @@ sub show_badges_earned {
           delete ($badges_earned{'Gold Altitude'}{'badge'});
           delete ($badges_earned{'Gold Distance'}{'badge'});
           }
+
+        if ($badges_earned{'Diamond Badge'}{'badge'}) {
+          delete ($badges_earned{'Diamond Distance'}{'badge'});
+          delete ($badges_earned{'Diamond Altitude'}{'badge'});
+          delete ($badges_earned{'Diamond Goal'}{'badge'});
+          }
+
 
         if ($badges{$badges_earned{$badge}{'badge'}}) {
           printf (qq(<td align="center" valign="top"><img src="%s" alt="%s" width="50"><br>%s<br><font size="-1">%s</font>\n),
@@ -2467,19 +2643,20 @@ sub dude_still_needs {
   my ($answer); 
   my (%output_names)=lesson_fields();
   my %still_needs = needed_for_solo($student,  $date);  
-  $answer .= sprintf qq(<tr><td bgcolor="#cccccc"><i>Progress Toward Solo:</i></td><td>%s</td></tr>\n), percent_complete($student); 
+  $answer .= sprintf qq(<tr><td bgcolor="#cccccc"><i>Progress Towards Solo:</i></td><td>%s</td></tr>\n), percent_complete($student); 
+  $answer .= sprintf qq(<tr><td bgcolor="#cccccc"><i>Progress Towards Rating:</i></td><td>%s</td></tr>\n), rating_percent_complete($student); 
 
   $answer .= qq(<tr><td bgcolor="#cccccc"><i>Needs&nbsp;<img src="/icons/blobs/blob3.png" align="absmiddle">&nbsp;or&nbsp;<img src="/icons/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Solo</i></td><td>);
   my ($output_count)=0;
 
   for my $field (sort keys (%still_needs)) {
     my ($the_field);
-    if (scalar(keys(%still_needs)) > 15) { 
-	$the_field=$field;
-	}
-    else {
-    	$the_field = $output_names{$field}; 
-	}
+    #if (scalar(keys(%still_needs)) > 15) { 
+	#$the_field=$field;
+	#}
+    #else {
+    $the_field = $output_names{$field}; 
+	#}
     $answer .= sprintf (qq(<a href="/TRAINING/Syllabus/%s.shtml" target="_syllabus" onmouseover="Tip('%s')" onmouseout="UnTip('')">%s</a>, ), 
 		$field,
 		$output_names{$field},
@@ -2526,7 +2703,7 @@ sub lesson_labels {
   my ($answer); 
   my (%field_names) = lesson_fields(); 
   for my $lesson_number (0..$#input) { 
-    $answer .= sprintf ( qq(<a href="http://skylinesoaring.org/TRAINING/Syllabus/%s.shtml" 
+    $answer .= sprintf ( qq(<a href="https://members.skylinesoaring.org/TRAINING/Syllabus/%s.shtml" 
 	target="_lesson"
 	onMouseover="Tip('%s');" onMouseout="UnTip('');">%s</a> \n),
 	$input[$lesson_number], 
@@ -2748,7 +2925,7 @@ EOM
       printf (qq(<tr><td>%s</td><td align="right">%s</td>),
 	$lesson_number,
 	href_tipify(
-		"http://skylinesoaring.org/TRAINING/Syllabus/$lesson_number.shtml",
+		"https://members.skylinesoaring.org/TRAINING/Syllabus/$lesson_number.shtml",
 		$syllabus{$lesson_number}->{'title'},
 		$syllabus{$lesson_number}->{'description'},
 		)
@@ -3013,7 +3190,7 @@ sub glider_abbreviation {
 	# Return "G", "K", or "O"
 	# For the Grob, the K or other
   my $input=shift;
-  my %answers=('GROB 103' => 'G', 'CAPSTAN' => 'C', 'ASK-21' => 'K', 
+  my %answers=('GROB 103' => 'G', 'CAPSTAN' => 'C', 'ASK-21' => 'K', 'N341KS' => 'K', 'N321K' => 'K', 'QQ' => 'Q', 
 	'-' => '-', '' => '-', 'Ground' => 'Ground'
 	); 
   $answers{$input} || "O";
@@ -3252,7 +3429,7 @@ sub start_page {
   $title ||= "Instruction Report";
   print header unless $header eq 'noheader';
 print <<EOM;
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML>
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -3363,7 +3540,7 @@ sub escape {
   my ($input) =shift;
   my ($answer);
   $answer = $input;
-  $answer =~ s/'/\\\'/g;
+  $answer =~ s/'/&#039;/g;
   $answer =~ s/\?/&#063;/g;
   $answer;
   }
