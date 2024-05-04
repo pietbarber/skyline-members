@@ -74,7 +74,7 @@ sub include {
   my $file = shift;
   my $title = shift;
   my $answer;
-  open (INCLUDE, "/var/www/members/html/INCLUDES/$file") || print "Can't open that file $!";
+  open (INCLUDE, "/var/www/members/INCLUDES/$file") || print "Can't open that file $!";
   while (my $line = <INCLUDE>) {
     $answer .= $line;
     }
@@ -394,7 +394,7 @@ sub show_notes_page {
     print qq(<ul><table border="0" bgcolor="#F8F8FF"><tr><td>\n); 
     print qq(According to our records, you do not have a glider rating. If this is incorrect, please notify the Member Meister and the Chief Flight Instructor of any necessary corrections by sending an email to <a href="mailto:membermeister\@skylinesoaring.org">membermeister\@skylinesoaring.org</a> . Flights and instruction not done at Skyline Soaring Club will not be included in this Training Report.<br>
 <b>Note:</b> Flight totals and some counts are not included before 1 January 2005.<br>
-<b>Note:</b> Flight Instruction done before 1 June 2009 could not be scored at level <img src="/icons/blobs/blob4.png" align="absmiddle"></table></ul>  ) ; 
+<b>Note:</b> Flight Instruction done before 1 June 2009 could not be scored at level <img src="/IMAGES/blobs/blob4.png" align="absmiddle"></table></ul>  ) ; 
     print h2("Current Status in the Training Program:"); 
     }
   else {
@@ -607,14 +607,14 @@ sub show_verbose_report {
     $answer .= qq(<br><table bgcolor="#FFFFFF" border="1"><tr bgcolor="#E0E0E0"><td>Performance Level</td><td>Results</td></tr>\n);
     for my $label (1..$#outcome_labels) {
       if ($lesson_result{$label}) { 
-        $answer .= sprintf(qq(<tr><td><img src="/icons/blobs/blob%d.png" align="absmiddle"> %s</td><td>%s</td></tr>\n), 
+        $answer .= sprintf(qq(<tr><td><img src="/IMAGES/blobs/blob%d.png" align="absmiddle"> %s</td><td>%s</td></tr>\n), 
 	   $label, 
 	   $outcome_labels[$label], 
            lesson_labels(sort(@{$lesson_outcome{$label}})) 
 	   );
         }
       else { 
-        $answer .= sprintf(qq(<tr><td><img src="/icons/blobs/blob%d.png" align="absmiddle"> %s</td><td><i>None</i></td></tr>\n), 
+        $answer .= sprintf(qq(<tr><td><img src="/IMAGES/blobs/blob%d.png" align="absmiddle"> %s</td><td><i>None</i></td></tr>\n), 
 	   $label,
 	   $outcome_labels[$label], 
 	   );
@@ -668,7 +668,7 @@ sub dude_still_needs {
   my %still_needs = needed_for_solo($student,  $date);
   $answer .= sprintf qq(<tr><td bgcolor="#cccccc"><i>Progress Toward Solo:</i></td><td>%s</td></tr>\n), percent_complete($student);
 
-  $answer .= qq(<tr><td bgcolor="#cccccc"><i>Needs&nbsp;<img src="/icons/blobs/blob3.png" align="absmiddle">&nbsp;or&nbsp;<img src="/icons/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Solo</i></td><td>);
+  $answer .= qq(<tr><td bgcolor="#cccccc"><i>Needs&nbsp;<img src="/IMAGES/blobs/blob3.png" align="absmiddle">&nbsp;or&nbsp;<img src="/IMAGES/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Solo</i></td><td>);
   my ($output_count)=0;
 
   for my $field (sort keys (%still_needs)) {
@@ -691,7 +691,7 @@ sub dude_still_needs {
     }
   $answer .= qq(</td></tr>),
   my %still_needs = needed_for_rating($student, $date);
-  $answer .= qq(<tr><td bgcolor="#cccccc"><i>Needs <img src="/icons/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Rating</i></td><td>);
+  $answer .= qq(<tr><td bgcolor="#cccccc"><i>Needs <img src="/IMAGES/blobs/blob4.png" align="absmiddle">&nbsp;for&nbsp;Rating</i></td><td>);
   my ($output_count)=0;
   for my $field (sort keys (%still_needs)) {
     my ($the_field);
@@ -759,12 +759,12 @@ sub show_current_syllabus {
 <br>
 <table border="0">  
 <tr align="center"><td bgcolor="#888888" colspan="5"><font color="#FFFFFF">Key:</font></td></tr>
-<td><img src="/icons/blobs/blob0.png"></td><td>Not Covered</td><td>&nbsp;</td>
-<td><img src="/icons/blobs/blob1.png"></td><td>Demonstrated</td></tr>
-<td><img src="/icons/blobs/blob2.png"></td><td>Performed</td><td >&nbsp;</td>
-<td><img src="/icons/blobs/blob3.png"></td><td>Solo Proficient</td></tr>
-<td><img src="/icons/blobs/blob4.png"></td><td>Rating Proficient</td><td >&nbsp;</td>
-<td><img src="/icons/blobs/blob5.png"></td><td>Critical Issue</td></tr>
+<td><img src="/IMAGES/blobs/blob0.png"></td><td>Not Covered</td><td>&nbsp;</td>
+<td><img src="/IMAGES/blobs/blob1.png"></td><td>Demonstrated</td></tr>
+<td><img src="/IMAGES/blobs/blob2.png"></td><td>Performed</td><td >&nbsp;</td>
+<td><img src="/IMAGES/blobs/blob3.png"></td><td>Solo Proficient</td></tr>
+<td><img src="/IMAGES/blobs/blob4.png"></td><td>Rating Proficient</td><td >&nbsp;</td>
+<td><img src="/IMAGES/blobs/blob5.png"></td><td>Critical Issue</td></tr>
 
 <td align="center" colspan=5 bgcolor="#888888"><font color="#FFFFFF">Backgrounds</font></td></tr>
 <td bgcolor="#AAAADD"></td><td>Max score > 20 flights prior</td><td >&nbsp;</td>
@@ -946,7 +946,7 @@ sub lesson_ball {
   my ($answer);
   my ($js_id) = sprintf ("s-%s-%s", $lesson_number, $flightno);
   $answer = sprintf (qq(<img border="0" 
-	src="/icons/blobs/blob%s.png", 
+	src="/IMAGES/blobs/blob%s.png", 
 	id="%s"
 	onmouseover="Tip(levels_description[%s])"
 	onmouseout="UnTip('')">),
@@ -1242,13 +1242,13 @@ sub show_badges_earned {
   my ($handle) = shift;
   my ($badge_count);
   my (%badges) = (
-        'A' => '/images/A-Badge.png',
-        'B' => '/images/B-Badge.png',
-        'C' => '/images/C-Badge.png',
-        'Bronze Badge' => '/images/Bronze%20Badge.png',
-        'Silver Badge' => '/images/Silver%20Badge.png',
-        'Gold Badge' => '/images/Gold%20Badge.png',
-        'Diamond Badge' => '/images/Diamond%20Badge.png',
+        'A' => '/IMAGES/A-Badge.png',
+        'B' => '/IMAGES/B-Badge.png',
+        'C' => '/IMAGES/C-Badge.png',
+        'Bronze Badge' => '/IMAGES/Bronze%20Badge.png',
+        'Silver Badge' => '/IMAGES/Silver%20Badge.png',
+        'Gold Badge' => '/IMAGES/Gold%20Badge.png',
+        'Diamond Badge' => '/IMAGES/Diamond%20Badge.png',
         );
   my (@badge_order) = (
         'A',
