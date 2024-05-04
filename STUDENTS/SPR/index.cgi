@@ -730,7 +730,7 @@ sub lesson_labels {
   my ($answer); 
   my (%field_names) = lesson_fields(); 
   for my $lesson_number (0..$#input) { 
-    $answer .= sprintf ( qq(<a href="http://skylinesoaring.org/TRAINING/Syllabus/%s.shtml" 
+    $answer .= sprintf ( qq(<a href="https://members.skylinesoaring.org/TRAINING/Syllabus/%s.shtml" 
 	target="_lesson"
 	onMouseover="Tip('%s');" onMouseout="UnTip('');">%s</a> \n),
 	$input[$lesson_number], 
@@ -849,7 +849,7 @@ EOM
       printf (qq(<tr><td>%s</td><td align="right">%s</td>),
 	$lesson_number,
 	href_tipify(
-		"http://skylinesoaring.org/TRAINING/Syllabus/$lesson_number.shtml",
+		"https://members.skylinesoaring.org/TRAINING/Syllabus/$lesson_number.shtml",
 		$syllabus{$lesson_number}->{'title'},
 		$syllabus{$lesson_number}->{'description'},
 		)
@@ -1003,7 +1003,7 @@ sub glider_abbreviation {
 	# Return "G", "K", or "O"
 	# For the Grob, the K or other
   my $input=shift;
-  my %answers=('GROB 103' => 'G', 'CAPSTAN' => 'C', 'ASK-21' => 'K', '-' => '-', '' => '-' ); 
+  my %answers=('GROB 103' => 'G', 'CAPSTAN' => 'C', 'ASK-21' => 'K', 'N341KS' => 'K', 'N321K' => 'K', '-' => '-', '' => '-' ); 
   $answers{$input} || "O";
   }
 
@@ -1288,6 +1288,14 @@ sub show_badges_earned {
           delete ($badges_earned{'Gold Distance'}{'badge'});
           }
 
+        if ($badges_earned{'Diamond Badge'}{'badge'}) {
+          delete ($badges_earned{'Diamond Distance'}{'badge'});
+          delete ($badges_earned{'Diamond Altitude'}{'badge'});
+          delete ($badges_earned{'Diamond Goal'}{'badge'});
+          }
+
+
+
         if ($badges{$badges_earned{$badge}{'badge'}}) {
           printf (qq(<td align="center" valign="top"><img src="%s" alt="%s" width="50"><br>%s<br><font size="-1">%s</font>\n),
                 $badges{$badges_earned{$badge}{'badge'}},
@@ -1371,6 +1379,7 @@ sub show_quals {
         );
   print qq(<h2>Club Qualifications Earned:</h2>\n);
   for my $is_qualified (sort %dude_qual) {
+    next if user_has_rating($handle) && $quals{$is_qualified}{'description'} =~ /Student/i;
     next if $quals{$is_qualified}{'img_url'} eq '';
     printf (qq(<img src="/INCLUDES/Qual-Icons/%s" alt="%s" width="50" height="50" onmouseover="Tip('%s')" onmouseout="UnTip('')">\n),
         $quals{$is_qualified}{'img_url'},
