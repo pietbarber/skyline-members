@@ -176,8 +176,7 @@ sub generate_pdf_questions {
     print print_question($question,++$question_count); 
     }
   select (STDOUT);
-  #open (EXEC, "-|") || exec ("/home/httpd/bin/wkhtmltopdf-i386", '--enable-smart-shrinking', '-q', '-s', 'letter', $qfilename, $pfilename); 
-  open (EXEC, "-|") || exec ("/home/httpd/bin/wkhtmltopdf-amd64", '--enable-smart-shrinking', '-q', '-s', 'letter', $qfilename, $pfilename); 
+  open (EXEC, "-|") || exec ("/usr/bin/wkhtmltopdf", '--enable-smart-shrinking', '-q', '-s', 'letter', $qfilename, $pfilename); 
   close (EXEC); 
   print qq(<td align="center"> <a href="$pfilename"><img src="/IMAGES/PDF-icon.jpeg" border="0"><br>Download Written Test</td>);
   }
@@ -270,7 +269,7 @@ sub generate_pdf_answersheet {
   while (my $question=shift @questions) {
     printf qq(%2.2d  [ %s ]  [ %s ]  [ %s ]  [ %s ]\n\n), 
 	++$count,
-        answers_for($question);
+        @{answers_for($question)};
 	;
     last if $count == 25; 
     }
@@ -282,7 +281,7 @@ sub generate_pdf_answersheet {
   while (my $question= shift @questions) {
     printf qq(%2.2d  [ %s ]  [ %s ]  [ %s ]  [ %s ]\n\n), 
 	++$count,
-        answers_for($question);
+        @{answers_for($question)};
 	;
     }
   print "</pre>";
@@ -320,7 +319,7 @@ sub answers_for {
       push (@output, " ");
       }
     }
-  @output;
+  \@output;
   }
 
 sub create_test_matter {
