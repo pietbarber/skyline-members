@@ -194,7 +194,7 @@ sub include {
 	my $file = shift;
  	my $title = shift;
 	my $answer;
-	open (INCLUDE, "/var/www/members/html/INCLUDES/$file");
+	open (INCLUDE, "/var/www/members/INCLUDES/$file");
 	while (my $line = <INCLUDE>) {
 		$answer .= $line;
 		}
@@ -203,29 +203,29 @@ sub include {
 	}
 
 sub javascript {
-	# There is lots of ugly JavaScript that needs to be included in the headers. 
-	# This is just that javascript included nicely. 
-  my $answer=<<EOM;
+        # If you are going to use a textarea (and elm1), then you need 
+        # the full_javascript, which includes the mini javascript subroutine's output too.
+
+  my $answer.=<<EOM;
 <!-- TinyMCE -->
-<script src="//tinymce.cachefly.net/4.0/tinymce.min.js"></script>
+<script src="/INCLUDES/tinymce/js/tinymce/tinymce.min.js"></script>
 <script>
-	tinymce.init({
-		selector: "textarea",
-			plugins: [
-				"advlist autolink lists link image charmap print preview anchor",
-				"searchreplace visualblocks code fullscreen",
-				"insertdatetime media table contextmenu paste"
-			],
-		toolbar: "insertfile undo redo | styleselect | bold italic underline superscript subscript| alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image",
-		autosave_ask_before_unload: false,
-		relative_urls : false,
-        	convert_urls: false,
-		});
+        tinymce.init({
+                selector: "textarea",
+                plugins: [
+                        'advlist', 'autolink', 'link', 'image', 'lists', 'charmap', 'preview', 'anchor', 'pagebreak',
+                        'searchreplace', 'wordcount', 'visualblocks', 'visualchars', 'code', 'fullscreen', 'insertdatetime',
+                        'media', 'table', 'emoticons', 'help'
+                ],
+                toolbar: 'undo redo | styles | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | forecolor backcolor emoticons',
+                autosave_ask_before_unload: false,
+                relative_urls : false,
+                convert_urls: false,
+                });
 </script>
 EOM
   $answer;
   }
-
 
 
 sub starter{
@@ -237,6 +237,7 @@ sub starter{
 	my $javascript=javascript() unless $nojs;
 	$title ||= "Member Biographies";
 	print header();
+	print '<!DOCTYPE HTML>'. "\n";
 	print join ("\n",
 		"<html><head><title>$title</title>\n",
 		$javascript,
@@ -430,7 +431,6 @@ sub edit_member {
 		-rows => "30",
 		-cols => "80",
 		-scroll => "auto", 
-		-id => 'elm1'
 		);
 	print "\n<br>Preview Before Commit: "; 
 	print button (

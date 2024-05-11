@@ -1038,12 +1038,7 @@ sub include {
   my $file = shift;
   my $answer;
   my ($dir, $fulldir);
-  use Cwd;
-  $fulldir=getcwd;
-  $dir = 'skyline' if ($fulldir =~ m#/var/www/skyline#);
-  warn ("The pwd is $fulldir\n") if $DEBUG;
-  $dir ||= 'members';
-  open (INCLUDE, "/var/www/$dir/html/INCLUDES/$file") || print "Can't open that file $!";
+  open (INCLUDE, "/var/www/members/INCLUDES/$file") || print "Can't open that file $!";
   while (my $line = <INCLUDE>) {
     $answer .= $line;
     }

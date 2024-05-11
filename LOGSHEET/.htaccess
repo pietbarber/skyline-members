@@ -1,4 +1,4 @@
-AuthUserFile /var/www/members/.htpasswd-logsheet
+AuthUserFile /var/www/members/.htpasswd
 AuthName 	"Skyline Members Only"
 AuthType 	Basic
 IndexOptions	FancyIndexing DescriptionWidth=* SuppressSize SuppressLastModified

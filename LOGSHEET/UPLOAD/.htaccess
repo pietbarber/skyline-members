@@ -1,7 +1,7 @@
 AuthUserFile /var/www/members/.htpasswd
 AuthName "Skyline Members Only"
 AuthType Basic
-Options ExecCGI
+Options ExecCGI FollowSymLinks
 IndexOrderDefault Descending Date
 
 <Limit GET POST>

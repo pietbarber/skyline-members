@@ -2,7 +2,7 @@ AuthUserFile /var/www/members/.htpasswd
 AuthName "Skyline Members Only"
 AuthType Basic
 IndexOptions	FancyIndexing DescriptionWidth=* SuppressSize SuppressLastModified
-Options Indexes Includes ExecCGI 
+Options Indexes Includes ExecCGI FollowSymLinks
 IndexOrderDefault Descending Date
 
 <Limit GET POST>
