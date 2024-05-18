@@ -1,5 +1,4 @@
 AuthUserFile /var/www/members/.htpasswd
-AuthGroupFile /dev/null
 AuthName "Skyline Members Only"
 AuthType Basic
 Options +ExecCGI

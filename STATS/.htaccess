@@ -1,0 +1,16 @@
+AuthUserFile /var/www/members/.htpasswd
+AuthName "Skyline Members Only"
+AuthType Basic
+IndexOptions	FancyIndexing DescriptionWidth=* SuppressSize SuppressLastModified
+Options Indexes Includes FollowSymLinks ExecCGI
+IndexOrderDefault Descending Date
+
+<Limit GET POST>
+require valid-user
+</Limit>
+
+ReadmeName README.shtml
+HeaderName HEADER.shtml
+
+
+
